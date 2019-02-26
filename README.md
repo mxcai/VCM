@@ -1,11 +1,11 @@
 VCM
 ===========
-VCM package contains three approaches for solving variance components model: PX-EM algorithm, MM algorithm and Method of Moments
+VCM package contains three approaches for solving variance components model: PX-EM algorithm, MM algorithm and Method of Moments.
 
 Installation
 ===========
 
-To install VCM, use the following code in R console
+To install VCM, use the following code in R console:
 
 ```
 #install.packages("devtools")
