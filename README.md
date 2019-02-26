@@ -1,38 +1,38 @@
-# VCM
+VCM
+===========
 VCM package contains three approaches for solving variance components model: PX-EM algorithm, MM algorithm and Method of Moments
 
 Installation
 ===========
 
-To install the development version of bivas, it's easiest to use the 'devtools' package. Note that bivas depends on the 'Rcpp' package, which also requires appropriate setting of Rtools and Xcode for Windows and Mac OS/X, respectively.
+To install VCM, use the following code in R console
 
 ```
 #install.packages("devtools")
 library(devtools)
-install_github("mxcai/bivas")
+install_github("mxcai/VCM")
 ```
 
 Usage
 ===========
-[The 'bivas' vignette](https://github.com/mxcai/bivas/blob/master/vignettes/bivas_package.pdf?raw=true) provides a quick start for the usage of the package. The following help page also provides quick reference and examples:
+[The 'VCM' vignette](https://github.com/mxcai/VCM/blob/master/inst/doc/vignette.pdf?raw=true) provides details of derivation and a quick start for the usage of the package.
 
-```
-library(bivas)
-package?bivas
-```
-
-Reproducibility
-==========
-
-All the simulation results can be reproduced by using the code at [sim-bivas](https://github.com/mxcai/sim-bivas).
 
 References
 ==========
 
-Mingxuan Cai, Mingwei Dai, Jingsi Ming, Heng Peng, Jin Liu and Can Yang. BIVAS: A scalable Bayesian method for bi-level variable selection. Under review. arXiv link: http://arxiv.org/abs/1803.10439.
+Jiang, J., Li, C., Paul, D., Yang, C., & Zhao, H. (2016). On high-dimensional misspecified mixed model analysis in genome-wide association study. The Annals of Statistics, 44(5), 2127-2160.
+
+Liu, C., Rubin, D. B., & Wu, Y. N. (1998). Parameter expansion to accelerate EM: the PX-EM algorithm. Biometrika, 85(4), 755-770.
+
+Foulley, J. L., & Van Dyk, D. A. (2000). The PX-EM algorithm for fast stable fitting of Henderson's mixed model. Genetics Selection Evolution, 32(2), 143.
+
+Zhou, H., Hu, L., Zhou, J., & Lange, K. (2018). MM algorithms for variance components models. Journal of Computational and Graphical Statistics, (just-accepted), 1-30.
+
+Wu, Y., & Sankararaman, S. (2018). A scalable estimator of SNP heritability for biobank-scale data. Bioinformatics, 34(13), i187-i194.
 
 
 Development
 ==========
 
-This R package is developed by Mingxuan Cai and Can Yang (macyang@ust.hk)
+This R package is developed by Mingxuan Cai (mcaiad@ust.hk).
