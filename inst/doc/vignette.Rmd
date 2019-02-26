@@ -300,4 +300,3 @@ c(fit_MoM$se2,fit_MoM$sb2)
 
 \end{thebibliography}     
 
-\end{document} 
