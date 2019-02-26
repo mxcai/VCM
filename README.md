@@ -15,7 +15,7 @@ install_github("mxcai/VCM")
 
 Usage
 ===========
-[The 'VCM' vignette](https://github.com/mxcai/VCM/blob/master/inst/doc/vignette.pdf?raw=true) provides details of derivation and a quick start for the usage of the package.
+[The 'VCM' vignette](https://github.com/mxcai/VCM/blob/master/inst/doc/vignette.pdf) provides details of derivation and a quick start for the usage of the package.
 
 
 References
