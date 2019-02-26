@@ -1,0 +1,303 @@
+---
+title: "Vignette of Variance Components Model"
+author: "CAI Mingxuan"
+header-includes:
+   - \usepackage{bm}
+   - \usepackage{algorithm}
+   - \usepackage{algorithmic}
+date: "2019/2/25"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\def\bfX {\mathbf{X}}
+\def\bfy {\mathbf{y}}
+\def\bfZ {\mathbf{Z}}
+\def\bfK {\mathbf{K}}
+\def\bfomega {\bm{\omega}}
+\def\hbfomega {\hat{\bfomega}}
+\def\sigb {\sigma_{\beta}^2}
+\def\sige {\sigma_{e}^2}
+\def\hsigb {\hat{\sigma}_{\beta}^2}
+\def\hsige {\hat{\sigma}_{e}^2}
+\def\bfbeta {\bm{\beta}}
+\def\bftheta {\bm{\theta}}
+\def\hbftheta {\hat{\bftheta}}
+\def\bfthetaold {\bm{\theta}_{old}}
+\def\bfSig {\bm{\Sigma}}
+\def\bfmu {\bm{\mu}}
+\def\tr {\mathrm{tr}}
+\def\tbfy {\tilde{\bfy}}
+\def\Var {\mathrm{Var}}
+\def\bfomegat {\bfomega^{(t)}}
+\def\siget {(\sigma_{e}^{(t)})^2}
+\def\sigbt {(\sigma_{\beta}^{(t)})^2}
+\def\bfOmega {\bm{\Omega}}
+\def\bfOmegat {\bfOmega^{(t)}}
+\def\bfM {\mathbf{M}}
+\def\bfS {\mathbf{S}}
+\def\bfq {\mathbf{q}}
+\def\bfSigtheta {\bfSig_{\bftheta}}
+\def\Cov {\mathrm{Cov}}
+
+This package contains three approaches for estimating variance components of linear model \cite{Jiang2016}: the parameter expanded EM (PX-EM) algorithm \cite{Liu1998,Foulley2000}, Minorization-Maximization (MM) algotirhm \cite{Zhou2018} and the Method of Moments (MoM) \cite{Wu2018}.
+
+## Variance components model
+
+Suppose we have dataset $\{\bfX,\bfZ,\bfy\}$ where $\bfX\in\mathbb{R}^{n\times p}$ is the design matrix whose columns are normalized with mean 0 and variance $1/p$, $\bfy\in\mathbb{R}^{n}$ is the response vector and $\bfZ\in\mathbb{R}^{n\times c}$ is the covariate matrix of fixed effects. The linear mixed model links $\bfy$ with $\bfX$ and $\bfZ$:
+\begin{equation}
+\bfy = \bfZ\bfomega+\bfX\bfbeta+\mathbf{e},\ \ \bfbeta\sim\mathcal{N}(0,\sigb\mathbf{I}_p),\ \  \mathbf{e}\sim\mathcal{N}(0,\sige\mathbf{I}_n),
+\end{equation}
+where $\bfbeta\in\mathbb{R}^p$ is the random effect, $\bfomega\in\mathbb{R}^{c}$ is the fixed effect and $\sigb$ and $\sige$ are model parameters. This linear mixed model can also be re-written as a variance components model:
+\begin{equation}
+\bfy = \mathcal{N}(\bfZ\bfomega,\sigb\bfK+\sige\mathbf{I}_n),
+\end{equation}
+where $\bfK=\bfX\bfX^T$. Since $\bfX$ has been normalized with mean $0$ and variance $1/p$, $\tr(K)=\tr(\mathbf{I}_n)=n$. The goal is to estimate the variance components $\bftheta=\{\sigb,\sige\}$ \cite{Jiang2016}. This package provides three approaches to estimate the parameters: PX-EM algorithm, MM algorithm and the method of moments. The first two are based on maximum likelihood (MLE) approach and the third one adopts the moment matching approach.
+
+
+## PX-EM algorithm
+The PX-EM algorithm is an extension of classical EM algorithm with faster speed \cite{Liu1998,Foulley2000}. We first consider the parameter expanded version of (1):
+\begin{equation*}
+\bfy = \bfZ\bfomega + \delta\bfX\bfbeta + \mathbf{e},
+\end{equation*}
+where $\delta\in\mathbb{R}^1$ is the expanded parameter. The complete-data log-likelihood is given as
+\begin{align}
+\begin{split}
+&\mathcal{L}=\log \Pr(\bfy,\bfbeta|\bftheta;\bfZ,\bfX)\\
+=&-\frac{n}{2}\log(2\pi\sige) - \frac{1}{2\sige}||\bfy-\bfZ\bfomega - \delta\bfX\bfbeta||^2\\
+&-\frac{p}{2}\log(2\pi\sigb) - \frac{1}{2\sigb}||\bfbeta||^2,
+\end{split}
+\end{align}
+from which we can easily recognize that the terms involving $\bfbeta$ are of a quadratic form:
+$$\bfbeta^T(-\frac{\delta^2}{2\sige}\bfX^T\bfX-\frac{1}{2\sigb}\mathbf{I}_p)\bfbeta + \frac{\delta}{\sige}(\bfy-\bfZ\bfomega)^T\bfX\bfbeta + \mathrm{Constant}.$$
+Therefore, the posterior distribution of $\bfbeta$ is Gaussian $\mathcal{N}(\bfbeta|\bfmu,\bfSig)$, where 
+\begin{align}
+\begin{split}
+&\bfSig^{-1} = \frac{\delta^2}{\sige}\bfX^T\bfX + \frac{1}{\sigb}\mathbf{I}_p,\\
+&\bfmu = (\frac{\delta^2}{\sige}\bfX^T\bfX + \frac{1}{\sigb}\mathbf{I}_p)^{-1}\frac{\delta}{\sige}\bfX^T(\bfy-\bfZ\bfomega).
+\end{split}\nonumber
+\end{align}
+Now in the E-step, we evaluate the $Q$-function by taking the expectation of the complete-data log-likelihood with respect to the posterior $\mathcal{N}(\bfbeta|\bfmu,\bfSig)$. Specifically, the quadratic terms involving $\bfbeta$ are evaluated as following:
+\begin{align}
+\begin{split}
+	\mathbb{E}[||\tbfy - \delta\bfX\bfbeta||^2] &= \mathbb{E}[\tbfy^T\tbfy - 2\delta\tbfy^T\bfX\bfbeta + \delta^2\bfbeta^T\bfX^T\bfX\bfbeta]\\
+	&= \tbfy^T\tbfy - 2\delta\tbfy^T\bfX\bfmu + \delta^2\tr(\bfX^T\bfX\bfSig),\\
+	\mathbb{E}[||\bfbeta||^2] &= \bfmu^T\bfmu + \tr(\bfSig),
+\end{split}\nonumber
+\end{align}
+where $\tbfy=\bfy-\bfZ\bfomega$. Then the $\mathcal{Q}$-function given the current parameter estimtes $\bfthetaold$ is obtained as:
+\begin{align}
+\begin{split}
+	\mathcal{Q}(\bftheta|\bfthetaold) =& -\frac{n}{2}\log(2\pi\sige) - \frac{p}{2}\log(2\pi\sigb)\\
+	& - \frac{1}{2\sige}||\bfy-\bfZ\bfomega - \delta\bfX\bfmu||^2 - \frac{1}{2\sigb}||\bfmu||^2\\
+	& - \frac{1}{2\sigb}\bfmu^T\bfmu - \tr\left(\left(\frac{\delta^2}{2\sige}\bfX^T\bfX + \frac{1}{2\sigb}\mathbf{I}_{p}\right)\bfSig\right).
+\end{split}\nonumber
+\end{align}
+It the M-step, the new estimates of parameter $\bftheta$ is obtained by setting the derivative of $\mathcal{Q}$-function to be zero. The resulting updates are given as follows:
+\begin{align}
+\begin{split}
+	\delta&= \frac{(\bfy-\bfZ\bfomega)^T\bfX\bfmu}{\bfmu^T\bfX^T\bfX\bfmu + \tr(\bfX^T\bfX\bfSig)},\\
+	\bfomega&= (\bfX^T\bfX)^{-1}\bfX^T(\bfy-\delta\bfX\bfmu),\\
+	\sige&= \frac{1}{n}[||\bfy-\bfZ\bfomega - \delta\bfX\bfmu||^2+\delta^2\tr(\bfX^T\bfX\bfSig)],\\
+	\sigb&= \frac{1}{p}[\bfmu^T\bfmu + \tr(\bfSig)].
+\end{split}\nonumber
+\end{align}
+This PX-EM algorithm is summarized in Algorithm 1. After convergence, the posterior mean and variance of $\mathcal{N}(\bfbeta|\bfmu,\bfSig)$ can be evaluated given the obtained parameter estimates $\hbftheta=\{\hsige,\hsigb\}$ and $\hbfomega$:
+\begin{align}
+\begin{split}
+	&\bfSig^{-1} = \frac{1}{\hsige}\bfX^T\bfX+\frac{1}{\hsigb}\mathbf{I}_{p},\\
+	&\bfmu = \left(\frac{1}{\hsige}\bfX^T\bfX+\frac{1}{\hsigb}\mathbf{I}_{p}\right)^{-1}\frac{1}{\hsige}\bfX^T(\bfy-\bfZ\hbfomega).
+\end{split}
+\end{align}
+
+
+\begin{algorithm}
+\caption{PX-EM algorithm for model (1)}
+\begin{algorithmic}
+\STATE {Initialization: Parameters are initialized by setting $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$}.
+\REPEAT 
+\STATE \textbf{E-step:} At the $t$-th iteration, evaluate the posterior $\mathcal{N}(\bfbeta|\bfmu,\bfSig)$ given the current parameter estimates $\bftheta^{(t)}=\{\siget,\sigbt\}$, $\bfomegat$ and set $\delta^{(t)}=1$: 
+\begin{align}
+\begin{split}
+\bfSig^{-1} &= \frac{(\delta^{(t)})^{2}}{\siget}\bfX^T\bfX+\frac{1}{\sigbt}\mathbf{I}_{p},\\
+\bfmu &= \left(\frac{(\delta^{(t)})^{2}}{\siget}\bfX^T\bfX+\frac{1}{\sigbt}\mathbf{I}_{p}\right)^{-1}\frac{(\delta^{(t)})^{2}}{\siget}\bfX^T(\bfy-\bfZ\bfomegat)
+\end{split}\nonumber
+\end{align}
+\STATE \textbf{M-step:} Update the model parameters by 
+\begin{align}
+\begin{split}
+	\delta^{(t+1)}&= \frac{(\bfy-\bfZ\bfomegat)^T\bfX\bfmu}{\bfmu^T\bfX^T\bfX\bfmu + \tr(\bfX^T\bfX\bfSig)},\\
+	\bfomega^{(t+1)}&= (\bfX^T\bfX)^{-1}\bfX^T(\bfy-\delta\bfX\bfmu),\\
+	(\sigma_{e}^{(t+1)})^2&= \frac{1}{n_r}[||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2+\delta^2\tr(\bfX^T\bfX\bfSig)],\\
+	(\sigma_{\beta}^{(t+1)})^2&= \frac{1}{p}[\bfmu^T\bfmu + \tr(\bfSig)].
+\end{split}\nonumber
+\end{align}
+\STATE \textbf{Reduction-step:} Rescale $(\sigma_{e}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{e}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
+\UNTIL{the incomplete-data log-likelihood stop increasing or maximum iteration reached}
+\end{algorithmic}
+\end{algorithm}
+
+
+
+## MM algorithm
+Unlike the PX-EM algorithm, the MM algorithm maximize the incomplete-data log-likelihood by considering the variance components model (2) \cite{Zhou2018}. The incomplete-data log-likelihood is given as
+\begin{equation}
+\log\Pr(\bfy|\bftheta;\bfZ,\bfK)=-\frac{1}{2}\log|\bfOmega| - \frac{1}{2}(\bfy-\bfZ\bfomega)^T\bfOmega(\bfy-\bfZ\bfomega),
+\end{equation}
+where $\bfOmega=\sigb\bfK+\sige\mathbf{I}_n$. The MM algorithm updates $\bfomega$ and $\bftheta$ alternatively by iteratively maximizing the lower bound of incomplete-data log-likelihood. Given $\bftheta^{(t)}$, the updata of $\bfomega$ is simply a weighted least square problem
+\begin{equation}
+\bfomegat = (\bfZ^T\bfOmegat\bfZ)^{-1}\bfZ^T(\bfOmega^{(t)})^{-1}\bfy.
+\end{equation}
+The update of $\bftheta$ given $\bfomega$ depends on two minorizations. First, 
+\begin{equation}
+-(\bfy-\bfZ\bfomega)^T(\bfOmegat)^{-1}(\frac{(\sigma_{\beta}^{(t)})^4}{\sigb}\bfK+\frac{(\sigma_{e}^{(t)})^4}{\sige})(\bfOmegat)^{-1}(\bfy-\bfZ\bfomega)\leq - \frac{1}{2}(\bfy-\bfZ\bfomega)^T\bfOmega(\bfy-\bfZ\bfomega),
+\end{equation}
+which separates the variance components in the quadratic term of the likelihood (5). Second, the convexity of function $-\log|\bfOmega|$ implies that
+\begin{equation}
+-\log|\bfOmegat| - \tr((\bfOmegat)^{-1}(\bfOmega-\bfOmegat))\leq-\frac{1}{2}\log|\bfOmega|,
+\end{equation}
+which separates the variance components in the log determinant of the likelihood (5). Combining (7) and (8), the overall minorization if given as
+\begin{align}
+\begin{split}
+&\mathcal{G}(\bftheta|\bfthetaold)\\
+=& - \log|\bfOmegat|-\frac{1}{2}\tr((\bfOmegat)^{-1}\bfOmega) - \frac{1}{2}(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-1}(\frac{(\sigma_{\beta}^{(t)})^4}{\sigb}\bfK+\frac{(\sigma_{e}^{(t)})^4}{\sige})(\bfOmegat)^{-1}(\bfy-\bfZ\bfomegat)\\
+=&- \log|\bfOmegat|-\frac{\sigb}{2}\tr((\bfOmegat)^{-1}\bfK) - \frac{1}{2}\frac{(\sigma_{\beta}^{(t)})^4}{\sigb}(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-1}\bfK(\bfOmegat)^{-1}(\bfy-\bfZ\bfomegat) \\
+& -\frac{\sige}{2}\tr((\bfOmegat)^{-1}) - \frac{1}{2}\frac{(\sigma_{e}^{(t)})^4}{\sige}(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-2}(\bfy-\bfZ\bfomegat).
+\end{split}
+\end{align}
+By setting the derivative of $\mathcal{G}$-function to be zero, the resulting updates are given as follows:
+\begin{align}
+\begin{split}
+(\sigma_{\beta}^{(t+1)})^2 &= (\sigma_{\beta}^{(t)})^2\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-1}\bfK(\bfOmegat)^{-1}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1}\bfK)}}\\
+(\sigma_e^{(t+1)})^2 &= (\sigma_e^{(t+1)})^2\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-2}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1})}}.
+\end{split}\nonumber
+\end{align}
+The resulting algorithm is summarized in Algorithm 2.
+
+\begin{algorithm}
+\caption{MM algorithm for model (2)}
+\begin{algorithmic}
+\STATE {Initialization: Parameters are initialized by setting $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$}.
+\REPEAT 
+\STATE 
+\begin{align}
+\begin{split}
+\bfOmegat &= (\sigma_{\beta}^{(t)})^2\bfK+(\sigma_e^{(t+1)})^2\mathbf{I}_n,\\
+\bfomegat &= (\bfZ^T\bfOmegat\bfZ)^{-1}\bfZ^T(\bfOmega^{(t)})^{-1}\bfy,\\
+(\sigma_{\beta}^{(t+1)})^2 &= (\sigma_{\beta}^{(t)})^2\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-1}\bfK(\bfOmegat)^{-1}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1}\bfK)}},\\
+(\sigma_e^{(t+1)})^2 &= (\sigma_e^{(t+1)})^2\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-2}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1})}}.
+\end{split}\nonumber
+\end{align}
+\UNTIL{the incomplete-data log-likelihood stop increasing or maximum iteration reached}
+\end{algorithmic}
+\end{algorithm}
+For MLE methods including MM and PX-EM, the covariance matrix of variance components estimates are calculated from inverse of Fisher Information Matrix (FIM). $FIM=-\mathbb{E}\left[\frac{\partial^2 \mathcal{L}}{\partial \bftheta^2}\right]=-\mathbb{E}\left[\frac{\partial^2}{\partial \bftheta^2} -\frac{1}{2}\log|\bfOmega|-\frac{1}{2}(\bfy-\bfZ\bfomega)^T\bfOmega^{-1}(\bfy-\bfZ\bfomega)\right]$. The first derivatives are: 
+\begin{align}
+\begin{split}
+\frac{\partial\mathcal{L}}{\partial\sigma_g^2}&=\frac{1}{2}\tr\left[-\bfOmega^{-1}\bfK+(\bfy-\bfZ\bfomega)^T\bfOmega^{-1}\bfK\bfOmega^{-1}(\bfy-\bfZ\bfomega)\right],\\
+\frac{\partial\mathcal{L}}{\partial\sigma_e^2}&=\frac{1}{2}\tr\left[-\bfOmega^{-1}+(\bfy-\bfZ\bfomega)^T\bfOmega^{-2}(\bfy-\bfZ\bfomega)\right];
+\end{split}
+\end{align}
+and the second derivatives are given as
+\begin{align}
+\begin{split}
+\frac{\partial^2\mathcal{L}}{\partial(\sigma_g^2)^2}&=\frac{1}{2}\tr\left[(\bfOmega^{-1}\bfK)^2-2(\bfOmega^{-1}\bfK)^2\bfOmega^{-1}(\bfy-\bfZ\bfomega)(\bfy-\bfZ\bfomega)^T\right],\\
+\frac{\partial^2\mathcal{L}}{\partial(\sigma_e^2)^2}&=\frac{1}{2}\tr\left[\bfOmega^{-2}-2\bfOmega^{-3}(\bfy-\bfZ\bfomega)(\bfy-\bfZ\bfomega)^T\right],\\
+\frac{\partial^2\mathcal{L}}{\partial\sigma_g^2\partial\sigma_e^2}&=\frac{1}{2}\tr\left[\bfOmega^{-1}\bfK\bfOmega^{-1}-(\bfOmega^{-1}\bfK\bfOmega^{-2}+\bfOmega^{-2}\bfK\bfOmega^{-1})(\bfy-\bfZ\bfomega)(\bfy-\bfZ\bfomega)^T\right].
+\end{split}
+\end{align}
+Since the the only random variable is $\bfy$, and $\mathbb{E}[(\bfy-\bfZ\bfomega)(\bfy-\bfZ\bfomega)^T]=\bfOmega$, the FIM is 
+\begin{align}
+FIM=&-\frac{1}{2}\begin{bmatrix} \tr[(\bfOmega^{-1}\bfK)^2]-2\tr[(\bfOmega^{-1}\bfK)^2] & \tr(\bfOmega^{-1}\bfK\bfOmega^{-1})-2\tr(\bfOmega^{-1}\bfK\bfOmega^{-1})\\ \cdot & \tr[\bfOmega^{-2}]-2\tr[\bfOmega^{-2}] \end{bmatrix}\\
+=&\frac{1}{2}\begin{bmatrix} \tr[(\bfOmega^{-1}\bfK)^2] & \tr(\bfOmega^{-1}\bfK\bfOmega^{-1})\\ \cdot & \tr[\bfOmega^{-2}] \end{bmatrix}.
+\end{align}
+Inverting the FIM leads to the covariance matrix of $\hbftheta$.
+
+
+## Method of Moments
+While the MM algorithm and PX-EM algorithm adopts the MLE, MoM estimator is obtained by first multiplying Equation (2) by the projection matrix $\bfM=\mathbf{I}_{n}-\bfZ(\bfZ^T\bfZ)^{-1}\bfZ^T$ and then solving the following ordinary least squares (OLS) problem \cite{Wu2018}:
+\begin{equation}
+argmin_{\sigb,\sige}||(\bfM\bfy)^T(\bfM\bfy)-(\sigb\bfM\bfK\bfM+\sige\bfM)||_F^2,
+\end{equation}
+. Using the fact that $||\mathbf{A}||_F=\sqrt{\tr(\mathbf{A}\mathbf{A}^T)}$, the OLS problem in (10) can be re-written as
+\begin{equation*}
+argmin_{\sigb,\sige}\tr[((\bfM\bfy)^T(\bfM\bfy)-(\sigb\bfM\bfK\bfM+\sige\bfM))((\bfM\bfy)^T(\bfM\bfy)-(\sigb\bfM\bfK\bfM+\sige\bfM))^T],
+\end{equation*}
+which leads to the normal equation
+\begin{equation}
+	\bfS\bftheta=\bfq, 
+\end{equation}
+\begin{equation}
+	\mathrm{with}\ \bfS = 
+	\begin{bmatrix}
+		 \tr(\bfM\bfK\bfM\bfK) & \tr(\bfM\bfK)\\
+		\tr(\bfM\bfK) & n-c
+		
+	\end{bmatrix},\ 
+	\bftheta=
+	\begin{bmatrix}
+		\sigb\\
+		\sige
+	\end{bmatrix},\ 
+	\bfq=
+	\begin{bmatrix}
+		\bfy^T\bfM\bfK\bfM\bfy\\
+		\bfy^T\bfM\bfy
+	\end{bmatrix}. \nonumber
+\end{equation}
+The MoM estimates of $\bftheta$ is then given by $\hbftheta=\bfS^{-1}\bfq$. The covariance matrix of MoM estimators are given by the sanwich estimator: $\bfSigtheta=\mathbb{E}\left[\frac{\partial B}{\partial\bftheta}\right]^{-1}\Cov(B)\mathbb{E}\left[\frac{\partial B}{\partial\bftheta}\right]^{-1}$, where $B$ is the normal equation $\bfq-\bfS\bftheta$. Specifically,
+\begin{equation}
+\mathbb{E}\left[\frac{\partial B}{\partial\theta}\right]^{-1}=\bfS^{-1},
+\end{equation}
+and
+\begin{equation}
+\Cov(B)=\Cov(\begin{bmatrix} \bfy^T\bfM\bfK\bfM\bfy\\\bfy^T\bfM\bfy\end{bmatrix})=\begin{bmatrix} \Var(\bfy^T\bfM\bfK\bfM\bfy) & \Cov(\bfy^T\bfM\bfK\bfM\bfy,\bfy^T\bfM\bfy)\\\Cov(\bfy^T\bfM\bfK\bfM\bfy,\bfy^T\bfM\bfK\bfM\bfy) & \Var(\bfy^T\bfM\bfy)\end{bmatrix},
+\end{equation}
+where the elements are calculated by $\Var(\bfy^T\bfM\bfK\bfM\bfy)=2\tr([\bfM\bfK\bfM\bfOmega]^2)$, $\Var(\bfy^T\bfM\bfy)=2\tr([\bfM\bfOmega]^2)$, $\Cov(\bfy^T\bfM\bfK\bfM\bfy,\bfy^T\bfM\bfy)=2\tr(\bfM\bfK\bfM\bfOmega\bfM\bfOmega)$. 
+
+## Example
+```{r,eval = T}
+library(VCM)
+n <- 1000
+d <- 1000
+
+sb2 <- 0.1
+se2 <- 1
+X <- matrix(rnorm(n*d),n,d)
+X <- scale(X)/sqrt(d)
+
+w  <- c(rnorm(d,0,sqrt(sb2)))
+y0 <- X%*%w
+
+y  <- y0 + sqrt(se2)*rnorm(n)
+
+fit_PXEM <- linRegPXEM(X=X,y=y,tol = 1e-6,maxIter =500,verbose=F)
+fit_MM <- linRegMM(X=X,y=y,tol=1e-6,maxIter = 500,verbose=F)
+fit_MoM <- linReg_MoM(X=X,y=y)
+
+c(fit_PXEM$se2,fit_PXEM$sb2)
+c(fit_MM$se2,fit_MM$sb2)
+c(fit_MoM$se2,fit_MoM$sb2)
+```
+
+\begin{thebibliography}{77}     
+
+\small       
+
+\bibitem{Jiang2016} Jiang, J., Li, C., Paul, D., Yang, C., \& Zhao, H. (2016). On high-dimensional misspecified mixed model analysis in genome-wide association study. \textit{The Annals of Statistics}, 44(5), 2127-2160.
+
+\bibitem{Liu1998} Liu, C., Rubin, D. B., \& Wu, Y. N. (1998). Parameter expansion to accelerate EM: the PX-EM algorithm. \textit{Biometrika}, 85(4), 755-770.
+
+\bibitem{Foulley2000} Foulley, J. L., \& Van Dyk, D. A. (2000). The PX-EM algorithm for fast stable fitting of Henderson's mixed model. \textit{Genetics Selection Evolution}, 32(2), 143.
+
+\bibitem{Zhou2018} Zhou, H., Hu, L., Zhou, J., \& Lange, K. (2018). MM algorithms for variance components models. \textit{Journal of Computational and Graphical Statistics}, (just-accepted), 1-30.
+    
+\bibitem{Wu2018} Wu, Y., \& Sankararaman, S. (2018). A scalable estimator of SNP heritability for biobank-scale data. \textit{Bioinformatics}, 34(13), i187-i194.
+
+
+\end{thebibliography}     
+
+\end{document} 
