@@ -6,7 +6,6 @@ linRegPXEM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbos
   ym <- mean(y)
   Xm <- colMeans(X)
   X <- scale(X)/sqrt(p)
-  K <- X %*% t(X)
 
   if(is.null(Z)){
     Z <- matrix(1,n,1)
@@ -103,12 +102,24 @@ linRegPXEM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbos
   w  <- c(beta0,mu)
   gamma <- p - sum(1/D1)/sb2
 
-  invSigy <- solve(sb2*K+se2*diag(n))
-  invSigyK <- invSigy%*%K
   FIM <- matrix(0,2,2)
-  FIM[1,1] <- sum(invSigyK^2) / 2
-  FIM[2,2] <- sum(invSigy^2) / 2
-  FIM[1,2] <- FIM[2,1] <- sum(invSigyK*invSigy) / 2
+
+  # When n>=p, we use the dual form: X^TOmega^-1 = Lam^-1X^T, where Omega^-1=(sb2*XX^T + se2*I_n)^-1, Lam^-1=(sb2*X^TX + se2*I_p)^-1
+  if(n>=p){                                        # work on dimension p if n>=p
+    invSigy_p <- eVec%*%(1/(eVal*sb2+se2)*t(eVec))        # p by p dual form: Lam^-1=(se2*I_p + sb2*X^TX)^-1
+    invSigyK_p <- invSigy_p%*%XX                          # Lam^-1(X^TX)
+    FIM[1,1] <- sum(invSigyK_p^2) / 2                     # tr(Omega^-1XX^TOmega^-1XX^T)=tr(Lam^-1X^TXLam^-1X^TX)
+    FIM[2,2] <- n/se2^2 -                                 # dual form of tr(Omega^-2)
+      2*sum(diag(invSigyK_p))*sb2/se2^2 +
+      sum(invSigyK_p^2)*sb2^2/se2^2
+    FIM[1,2] <- FIM[2,1] <- sum(invSigyK_p*invSigy_p) / 2 # tr(Omega^-1XX^TOmega^-1) = tr(Lam^-2X^TX)
+  } else {                                         # work on dimension n if n<p
+    invSigy <- eVec%*%(1/(eVal*sb2+se2)*t(eVec))          #  n by n original form Omega^-1=(se2*I_n + sb2*XX^T)^-1 <=> solve(sb2*K+se2*diag(n))
+    invSigyK <- invSigy%*%XX                              # Omega^-1(XX^T)
+    FIM[1,1] <- sum(invSigyK^2) / 2                       # tr(Omega^-1XX^TOmega^-1XX^T)
+    FIM[2,2] <- sum(invSigy^2) / 2                        # tr(Omega^-2)
+    FIM[1,2] <- FIM[2,1] <- sum(invSigyK*invSigy) / 2     # tr(Omega^-1XX^TOmega^-1)
+  }
   covSig <- solve(FIM)  #inverse of FIM
 
   bayesReg <- list(beta0=beta0,sb2=sb2,se2=se2,mu=mu,gamma=gamma,iter=iter,covSig=covSig,lb=lb)
