@@ -39,12 +39,12 @@ linRegMM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbose=
     d <- 1/(sb2*eVal + se2)
     beta0 <- solve((t(Zt*d))%*%Zt) %*% t(Zt) %*% diag(d) %*% yt
     res <- yt - Zt %*% beta0
-    # safe guard for small variance components
-    sb2 <- ifelse(sb2<1e-6,1e-6,sb2)
-    se2 <- ifelse(se2<1e-6,1e-6,se2)
 
     sb2 <- sb2 * sqrt(sum(res^2 * d^2 * eVal) / sum(d * eVal))
     se2 <- se2 * sqrt(sum(res^2 * d^2) / sum(d))
+    # safe guard for small variance components
+    sb2 <- ifelse(sb2<1e-6,1e-6,sb2)
+    se2 <- ifelse(se2<1e-6,1e-6,se2)
 
     #evaluate lower bound
     lb[iter] <- get_lb_MM(n,d,res)
