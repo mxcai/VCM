@@ -91,6 +91,9 @@ linRegPXEM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbos
 
     se2 <- sum((y_bar-Xmu*gam)^2)/n + gam^2 * sum(eVal/D)/n
     sb2 <- sum((mu)^2)/p + sum(1/D1)/p
+    # safe guard for small variance components
+    sb2 <- ifelse(sb2<1e-6,1e-6,sb2)
+    se2 <- ifelse(se2<1e-6,1e-6,se2)
 
     #Reduciton-step
     sb2 <- gam^2 * sb2
