@@ -20,11 +20,11 @@ fit_MoM <- linReg_MoM(X=X,y=y)
 lb_MM <- fit_MM$lb
 lb_PX <- fit_PXEM$lb
 
-lb_MM <- c(lb_MM,rep(NA,ifelse(length(lb_PX)>length(lb_MM),length(lb_PX)-length(lb_MM),0)))
-lb_PX <- c(lb_PX,rep(NA,ifelse(length(lb_MM)>length(lb_PX),length(lb_MM)-length(lb_PX),0)))
+lb_MM <- c(lb_MM,rep(max(lb_MM),ifelse(length(lb_PX)>length(lb_MM),length(lb_PX)-length(lb_MM),0)))
+lb_PX <- c(lb_PX,rep(max(lb_PX),ifelse(length(lb_MM)>length(lb_PX),length(lb_MM)-length(lb_PX),0)))
 
 # maxiter <- min(c(length(fit_MM$lb),length(fit_PXEM$lb)))-1
-lb <- cbind(PXEM=lb_PX[2:length(lb_PX)],MM=lb_MM[2:length(lb_MM)])
+lb <- cbind(PXEM=lb_PX[-1],MM=lb_MM[-1])
 
 lb <- melt(lb)
 names(lb) <- c('iter','method','likelihood')
