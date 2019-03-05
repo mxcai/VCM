@@ -227,11 +227,11 @@ The update of $\bftheta$ given $\bfomega$ depends on two minorizations. First,
 \begin{equation}
 -(\bfy-\bfZ\bfomega)^T(\bfOmegat)^{-1}(\frac{(\sigma_{\beta}^{(t)})^4}{\sigb}\bfK+\frac{(\sigma_{e}^{(t)})^4}{\sige})(\bfOmegat)^{-1}(\bfy-\bfZ\bfomega)\leq - \frac{1}{2}(\bfy-\bfZ\bfomega)^T\bfOmega(\bfy-\bfZ\bfomega),
 \end{equation}
-which separates the variance components in the quadratic term of the likelihood (5). Second, the convexity of function $-\log|\bfOmega|$ implies that
+which separates the variance components in the quadratic term of the likelihood (6). Second, the convexity of function $-\log|\bfOmega|$ implies that
 \begin{equation}
 -\log|\bfOmegat| - \tr((\bfOmegat)^{-1}(\bfOmega-\bfOmegat))\leq-\frac{1}{2}\log|\bfOmega|,
 \end{equation}
-which separates the variance components in the log determinant of the likelihood (5). Combining (7) and (8), the overall minorization if given as
+which separates the variance components in the log determinant of the likelihood (6). Combining (8) and (9), the overall minorization if given as
 \begin{align}
 \begin{split}
 &\mathcal{G}(\bftheta|\bfthetaold)\\
@@ -295,7 +295,7 @@ For MLE methods including MM and PX-EM, the covariance matrix of variance compon
 \begin{split}
 \frac{\partial\mathcal{L}}{\partial\sigma_g^2}&=\frac{1}{2}\tr\left[-\bfOmega^{-1}\bfK+(\bfy-\bfZ\bfomega)^T\bfOmega^{-1}\bfK\bfOmega^{-1}(\bfy-\bfZ\bfomega)\right],\\
 \frac{\partial\mathcal{L}}{\partial\sigma_e^2}&=\frac{1}{2}\tr\left[-\bfOmega^{-1}+(\bfy-\bfZ\bfomega)^T\bfOmega^{-2}(\bfy-\bfZ\bfomega)\right];
-\end{split}
+\end{split}\nonumber
 \end{align}
 and the second derivatives are given as
 \begin{align}
@@ -303,20 +303,24 @@ and the second derivatives are given as
 \frac{\partial^2\mathcal{L}}{\partial(\sigma_g^2)^2}&=\frac{1}{2}\tr\left[(\bfOmega^{-1}\bfK)^2-2(\bfOmega^{-1}\bfK)^2\bfOmega^{-1}(\bfy-\bfZ\bfomega)(\bfy-\bfZ\bfomega)^T\right],\\
 \frac{\partial^2\mathcal{L}}{\partial(\sigma_e^2)^2}&=\frac{1}{2}\tr\left[\bfOmega^{-2}-2\bfOmega^{-3}(\bfy-\bfZ\bfomega)(\bfy-\bfZ\bfomega)^T\right],\\
 \frac{\partial^2\mathcal{L}}{\partial\sigma_g^2\partial\sigma_e^2}&=\frac{1}{2}\tr\left[\bfOmega^{-1}\bfK\bfOmega^{-1}-(\bfOmega^{-1}\bfK\bfOmega^{-2}+\bfOmega^{-2}\bfK\bfOmega^{-1})(\bfy-\bfZ\bfomega)(\bfy-\bfZ\bfomega)^T\right].
-\end{split}
+\end{split}\nonumber
 \end{align}
 Since the the only random variable is $\bfy$, and $\mathbb{E}[(\bfy-\bfZ\bfomega)(\bfy-\bfZ\bfomega)^T]=\bfOmega$, the FIM is 
 \begin{align}
+\begin{split}
 FIM=&-\frac{1}{2}\begin{bmatrix} \tr[(\bfOmega^{-1}\bfK)^2]-2\tr[(\bfOmega^{-1}\bfK)^2] & \tr(\bfOmega^{-1}\bfK\bfOmega^{-1})-2\tr(\bfOmega^{-1}\bfK\bfOmega^{-1})\\ \cdot & \tr[\bfOmega^{-2}]-2\tr[\bfOmega^{-2}] \end{bmatrix}\\
 =&\frac{1}{2}\begin{bmatrix} \tr[(\bfOmega^{-1}\bfK)^2] & \tr(\bfOmega^{-1}\bfK\bfOmega^{-1})\\ \cdot & \tr[\bfOmega^{-2}] \end{bmatrix}.
+\end{split}\nonumber
 \end{align}
 Inverting the FIM leads to the covariance matrix of $\hbftheta$.
 
 When handling the FIM, we can again make use of the pre-calculated eigenvectors and eigenvalues to avoid inverting $\bfOmega$. For MM algorithm and PX-EM algorithm with $p\geq n$ case, we can evaluate $\bfOmega^{-1}$ using the identity $\bfOmega^{-1}=\bfU\tbfD\bfU^T$ with $\bfU$, $\tbfD$ from Algorithm 3 and 5. For PX-EM algorithm with $n>p$, we first define $\bfLam^{-1}=(\sige\mathbf{I}_p + \sigb\bfX^T\bfX)^{-1}$. Then using the matrix inverse lemma, we have $\bfX^T\bfOmega^{-1}=\bfLam^{-1}\bfX^T$. Therefore, we can express the FIM using the dual form:
 \begin{align}
+\begin{split}
   \tr[(\bfOmega^{-1}\bfK)^2]=&\tr(\bfOmega^{-1}\bfX\bfX^T\bfOmega^{-1}\bfX\bfX^T)=\tr(\bfLam^{-1}\bfX^T\bfX\bfLam^{-1}\bfX^T\bfX)\\
   \tr[\bfOmega^{-1}\bfK\bfOmega^{-1}]=&\tr[\bfOmega^{-1}\bfX\bfX^T\bfOmega^{-1}]=\tr(\bfLam^{-2}\bfX^T\bfX)\\
   \tr[\bfOmega^{-2}]=&n(\frac{1}{\sige})^2 - 2\frac{\sigb}{(\sige)^2}\tr[\bfLam^{-1}\bfX^T\bfX] + (\frac{\sigb}{\sige})^2\tr[\bfLam^{-1}\bfX^T\bfX\bfLam^{-1}\bfX^T\bfX],
+\end{split}\nonumber
 \end{align}
 where $\bfLam^{-1}=\bfV\tbfQ\bfV^T$ with $\bfV$ and $\tbfQ$ from Algorithm 2.
 
@@ -324,9 +328,9 @@ where $\bfLam^{-1}=\bfV\tbfQ\bfV^T$ with $\bfV$ and $\tbfQ$ from Algorithm 2.
 ## Method of Moments
 While the MM algorithm and PX-EM algorithm adopts the MLE, MoM estimator is obtained by first multiplying Equation (2) by the projection matrix $\bfM=\mathbf{I}_{n}-\bfZ(\bfZ^T\bfZ)^{-1}\bfZ^T$ and then solving the following ordinary least squares (OLS) problem \cite{Wu2018}:
 \begin{equation}
-argmin_{\sigb,\sige}||(\bfM\bfy)^T(\bfM\bfy)-(\sigb\bfM\bfK\bfM+\sige\bfM)||_F^2,
+argmin_{\sigb,\sige}||(\bfM\bfy)^T(\bfM\bfy)-(\sigb\bfM\bfK\bfM+\sige\bfM)||_F^2.
 \end{equation}
-. Using the fact that $||\mathbf{A}||_F=\sqrt{\tr(\mathbf{A}\mathbf{A}^T)}$, the OLS problem in (10) can be re-written as
+Using the fact that $||\mathbf{A}||_F=\sqrt{\tr(\mathbf{A}\mathbf{A}^T)}$, the OLS problem in (11) can be re-written as
 \begin{equation*}
 argmin_{\sigb,\sige}\tr[((\bfM\bfy)^T(\bfM\bfy)-(\sigb\bfM\bfK\bfM+\sige\bfM))((\bfM\bfy)^T(\bfM\bfy)-(\sigb\bfM\bfK\bfM+\sige\bfM))^T],
 \end{equation*}
