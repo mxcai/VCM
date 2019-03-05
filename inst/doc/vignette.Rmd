@@ -51,6 +51,8 @@ knitr::opts_chunk$set(echo = TRUE)
 \def\tbfQ {\tilde{\mathbf{Q}}}
 \def\tq {\tilde{q}}
 \def\bfLam {\mathbf{\Lambda}}
+\def\bbfZ {\bar{\mathbf{Z}}}
+\def\bbfy {\bar{\bfy}}
 
 This package contains three approaches for estimating variance components of linear model \cite{Jiang2016}: the parameter expanded EM (PX-EM) algorithm \cite{Liu1998,Foulley2000}, Minorization-Maximization (MM) algotirhm \cite{Zhou2018} and the Method of Moments (MoM) \cite{Wu2018}.
 
@@ -93,7 +95,7 @@ Now in the E-step, we evaluate the $Q$-function by taking the expectation of the
 \begin{align}
 \begin{split}
 	\mathbb{E}[||\tbfy - \delta\bfX\bfbeta||^2] &= \mathbb{E}[\tbfy^T\tbfy - 2\delta\tbfy^T\bfX\bfbeta + \delta^2\bfbeta^T\bfX^T\bfX\bfbeta]\\
-	&= \tbfy^T\tbfy - 2\delta\tbfy^T\bfX\bfmu + \delta^2\tr(\bfX^T\bfX\bfSig),\\
+	&= \tbfy^T\tbfy - 2\delta\tbfy^T\bfX\bfmu + \delta^2\bfmu^T\bfX^T\bfX\bfmu + \delta^2\tr(\bfX^T\bfX\bfSig),\\
 	\mathbb{E}[||\bfbeta||^2] &= \bfmu^T\bfmu + \tr(\bfSig),
 \end{split}\nonumber
 \end{align}
@@ -101,9 +103,9 @@ where $\tbfy=\bfy-\bfZ\bfomega$. Then the $\mathcal{Q}$-function given the curre
 \begin{align}
 \begin{split}
 	\mathcal{Q}(\bftheta|\bfthetaold) =& -\frac{n}{2}\log(2\pi\sige) - \frac{p}{2}\log(2\pi\sigb)\\
-	& - \frac{1}{2\sige}||\bfy-\bfZ\bfomega - \delta\bfX\bfmu||^2 - \frac{1}{2\sigb}||\bfmu||^2\\
-	& - \frac{1}{2\sigb}\bfmu^T\bfmu - \tr\left(\left(\frac{\delta^2}{2\sige}\bfX^T\bfX + \frac{1}{2\sigb}\mathbf{I}_{p}\right)\bfSig\right).
-\end{split}\nonumber
+	& - \frac{1}{2\sige}||\bfy-\bfZ\bfomega - \delta\bfX\bfmu||^2 - \frac{1}{2\sigb}\bfmu^T\bfmu\\
+	& - \tr\left(\left(\frac{\delta^2}{2\sige}\bfX^T\bfX + \frac{1}{2\sigb}\mathbf{I}_{p}\right)\bfSig\right).
+\end{split}
 \end{align}
 It the M-step, the new estimates of parameter $\bftheta$ is obtained by setting the derivative of $\mathcal{Q}$-function to be zero. The resulting updates are given as follows:
 \begin{align}
@@ -114,6 +116,8 @@ It the M-step, the new estimates of parameter $\bftheta$ is obtained by setting 
 	\sigb&= \frac{1}{p}[\bfmu^T\bfmu + \tr(\bfSig)].
 \end{split}\nonumber
 \end{align}
+To check the convergence of PX-EM algorithm, we evaluate the lower bound after each E-step, when the incomplete-data log-likelihood is exactly equal to the lower bound (i.e. the bound is tight).
+
 This PX-EM algorithm is summarized in Algorithm 1. After convergence, the posterior mean and variance of $\mathcal{N}(\bfbeta|\bfmu,\bfSig)$ can be evaluated given the obtained parameter estimates $\hbftheta=\{\hsige,\hsigb\}$ and $\hbfomega$:
 \begin{align}
 \begin{split}
@@ -132,7 +136,8 @@ This PX-EM algorithm is summarized in Algorithm 1. After convergence, the poster
 \begin{align}
 \begin{split}
 \bfSig^{-1} &= \frac{(\delta^{(t)})^{2}}{\siget}\bfX^T\bfX+\frac{1}{\sigbt}\mathbf{I}_{p},\\
-\bfmu &= \left(\frac{(\delta^{(t)})^{2}}{\siget}\bfX^T\bfX+\frac{1}{\sigbt}\mathbf{I}_{p}\right)^{-1}\frac{(\delta^{(t)})^{2}}{\siget}\bfX^T(\bfy-\bfZ\bfomegat)
+\bfmu &= \left(\frac{(\delta^{(t)})^{2}}{\siget}\bfX^T\bfX+\frac{1}{\sigbt}\mathbf{I}_{p}\right)^{-1}\frac{(\delta^{(t)})^{2}}{\siget}\bfX^T(\bfy-\bfZ\bfomegat),\\
+ELBO^{(t)} &= \mathcal{Q}(\bftheta^{(t)} + \frac{1}{2}\log|2\pi\bfSig|),\mathrm{\ where\ \mathcal{Q}\ is\ defined\ in\ Equation (4).}
 \end{split}\nonumber
 \end{align}
 \STATE \textbf{M-step:} Update the model parameters by 
@@ -145,7 +150,7 @@ This PX-EM algorithm is summarized in Algorithm 1. After convergence, the poster
 \end{split}\nonumber
 \end{align}
 \STATE \textbf{Reduction-step:} Rescale $(\sigma_{e}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{e}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
-\UNTIL{the incomplete-data log-likelihood stop increasing or maximum iteration reached}
+\UNTIL{the incomplete-data log-likelihood ($ELBO^{(t)}$) stop increasing or maximum iteration reached}
 \end{algorithmic}
 \end{algorithm}
 
@@ -160,7 +165,9 @@ In practice. We can avoid frequently inverting the $p\times p$ matrix $\bfSig$ b
 \begin{align}
 \begin{split}
 \tq_j& = q_j/\siget + 1/\sigbt,\ \mathrm{diag}(\tbfQ)=\tq=[\tq_1,...\tq_p]\\
-\bfmu &= \frac{1}{\siget}\bfV[\bfV^T\bfX^T(\bfy-\bfZ\bfomegat)\odot1/\tq]
+\bfmu &= \frac{1}{\siget}\bfV[\bfV^T\bfX^T(\bfy-\bfZ\bfomegat)\odot1/\tq]\\
+ELBO^{(t)} =& -\frac{n}{2}\log(2\pi\siget) - \frac{p}{2}\log(2\pi\sigbt) - \frac{1}{2\siget}||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2\\
+	& - \frac{1}{2\sigbt}\bfmu^T\bfmu - \frac{1}{2}\sum_j^p\log\tq_j.
 \end{split}\nonumber
 \end{align}
 \STATE \textbf{M-step:} Update the model parameters by 
@@ -173,7 +180,7 @@ In practice. We can avoid frequently inverting the $p\times p$ matrix $\bfSig$ b
 \end{split}\nonumber
 \end{align}
 \STATE \textbf{Reduction-step:} Rescale $(\sigma_{e}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{e}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
-\UNTIL{the incomplete-data log-likelihood stop increasing or maximum iteration reached}
+\UNTIL{the incomplete-data log-likelihood ($ELBO^{(t)}$) stop increasing or maximum iteration reached}
 \end{algorithmic}
 \end{algorithm}
 
@@ -188,7 +195,9 @@ If $p> n$, we conduct the eigen-decomposition $\bfX\bfX^T=\bfU\bfD\bfU^T$ before
 \begin{align}
 \begin{split}
 \td_i& = d_i/\siget + 1/\sigbt,\ \mathrm{diag}(\tbfD)=\td=[\td_i,...\td_n]\\
-\bfmu &= \frac{1}{\siget}\bfX^T\bfU[\bfU^T(\bfy-\bfZ\bfomegat)\odot1/\td]
+\bfmu &= \frac{1}{\siget}\bfX^T\bfU[\bfU^T(\bfy-\bfZ\bfomegat)\odot1/\td]\\
+ELBO^{(t)} =& -\frac{n}{2}\log(2\pi\siget) - \frac{p}{2}\log(2\pi\sigbt) - \frac{1}{2\siget}||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2\\
+	& - \frac{1}{2\sigbt}\bfmu^T\bfmu - \frac{1}{2}\sum_i^n\log\td_i + \frac{p-n}{2}\log\sigbt.
 \end{split}\nonumber
 \end{align}
 \STATE \textbf{M-step:} Update the model parameters by 
@@ -201,7 +210,7 @@ If $p> n$, we conduct the eigen-decomposition $\bfX\bfX^T=\bfU\bfD\bfU^T$ before
 \end{split}\nonumber
 \end{align}
 \STATE \textbf{Reduction-step:} Rescale $(\sigma_{e}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{e}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
-\UNTIL{the incomplete-data log-likelihood stop increasing or maximum iteration reached}
+\UNTIL{the incomplete-data log-likelihood ($ELBO^{(t)}$) stop increasing or maximum iteration reached}
 \end{algorithmic}
 \end{algorithm}
 
@@ -238,7 +247,7 @@ By setting the derivative of $\mathcal{G}$-function to be zero, the resulting up
 (\sigma_e^{(t+1)})^2 &= (\sigma_e^{(t+1)})^2\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-2}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1})}}.
 \end{split}\nonumber
 \end{align}
-The resulting algorithm is summarized in Algorithm 4.
+The convergence of MM algorithm is checked by evaluating the log-likelihood at each iteration. The resulting algorithm is summarized in Algorithm 4.
 
 \begin{algorithm}
 \caption{MM algorithm for model (2)}
@@ -250,11 +259,12 @@ The resulting algorithm is summarized in Algorithm 4.
 \begin{split}
 \bfOmegat &= (\sigma_{\beta}^{(t)})^2\bfK+(\sigma_e^{(t+1)})^2\mathbf{I}_n,\\
 \bfomegat &= (\bfZ^T\bfOmegat\bfZ)^{-1}\bfZ^T(\bfOmega^{(t)})^{-1}\bfy,\\
-(\sigma_{\beta}^{(t+1)})^2 &= (\sigma_{\beta}^{(t)})^2\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-1}\bfK(\bfOmegat)^{-1}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1}\bfK)}},\\
-(\sigma_e^{(t+1)})^2 &= (\sigma_e^{(t+1)})^2\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-2}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1})}}.
+\mathrm{evaluate}&\ \mathcal{L}^{(t)}(\bfOmegat,\bfomegat)\ \mathrm{from\ Equation\ (6)}, \\
+(\sigma_{\beta}^{(t+1)})^2 &= \sigbt\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-1}\bfK(\bfOmegat)^{-1}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1}\bfK)}},\\
+(\sigma_e^{(t+1)})^2 &= \siget\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-2}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1})}}.
 \end{split}\nonumber
 \end{align}
-\UNTIL{the incomplete-data log-likelihood stop increasing or maximum iteration reached}
+\UNTIL{the incomplete-data log-likelihood ($\mathcal{L}^{(t)}$) stop increasing or maximum iteration reached}
 \end{algorithmic}
 \end{algorithm}
 
@@ -263,18 +273,19 @@ To avoid frequently inverting $\bfOmega$ in the iterations, we can conduct eigen
 \begin{algorithm}
 \caption{Efficient MM algorithm for model (2)}
 \begin{algorithmic}
-\STATE {Initialization: $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$}; $\bfK=\bfU\bfD\bfU^T$.
+\STATE {Initialization: $\bfK=\bfU\bfD\bfU^T$, $\bbfZ=\bfU^T\bfZ$, $\bbfy=\bfU^T\bfy$, $\bfomega=(\bbfZ^T\bbfZ)^{-1}\bbfZ^T\bbfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$}.
 \REPEAT 
 \STATE 
 \begin{align}
 \begin{split}
 \td_i& = d_i/\siget + 1/\sigbt,\ \mathrm{diag}(\tbfD)=\td=[\td_i,...\td_n]\\
-\bfomegat &= (\bfZ^T\tbfD\bfZ)^{-1}\bfZ^T(\bfy\odot\td),\\
-(\sigma_{\beta}^{(t+1)})^2 &= (\sigma_{\beta}^{(t)})^2\sqrt{\frac{\sum_i^n[(\bfy_i-\bfZ_i^T\bfomegat)^2\td_i^2d_i]}{\sum_i^n\td_id_i}},\\
-(\sigma_e^{(t+1)})^2 &= (\sigma_e^{(t+1)})^2\sqrt{\frac{\sum_i^n[(\bfy_i-\bfZ_i^T\bfomegat)^2\td_i^2]}{\sum_i^n\td_i}}.
+\bfomegat &= (\bbfZ^T\tbfD\bbfZ)^{-1}\bbfZ^T(\bbfy\odot\td),\\
+\mathcal{L}^{(t)}(\bfOmegat,\bfomegat) &= -\frac{1}{2}\sum_i^n\log\td_i-\frac{n}{2}\log\sigb-\frac{n}{2}\log\sige-\frac{n}{2}\log 2\pi - \frac{1}{2}\sum_i^n[(\bbfy_i-\bbfZ_i^T\bfomegat)^2/\td_i]\\
+(\sigma_{\beta}^{(t+1)})^2 &= \frac{\sigma_\beta^{(t)}}{\sigma_e^{(t)}}\sqrt{\frac{\sum_i^n[(\bbfy_i-\bbfZ_i^T\bfomegat)^2d_i/\td_i^2]}{\sum_i^nd_i/\td_i}},\\
+(\sigma_e^{(t+1)})^2 &= \frac{\sigma_e^{(t)}}{\sigma_\beta^{(t)}}\sqrt{\frac{\sum_i^n[(\bbfy_i-\bbfZ_i^T\bfomegat)^2/\td_i^2]}{\sum_i^n1/\td_i}}.
 \end{split}\nonumber
 \end{align}
-\UNTIL{the incomplete-data log-likelihood stop increasing or maximum iteration reached}
+\UNTIL{the incomplete-data log-likelihood ($\mathcal{L}^{(t)}$) stop increasing or maximum iteration reached}
 \end{algorithmic}
 \end{algorithm}
 
@@ -301,7 +312,7 @@ FIM=&-\frac{1}{2}\begin{bmatrix} \tr[(\bfOmega^{-1}\bfK)^2]-2\tr[(\bfOmega^{-1}\
 \end{align}
 Inverting the FIM leads to the covariance matrix of $\hbftheta$.
 
-When handling the FIM, we can agian make use of the pre-calculated eigenvectors and eigenvalues to avoid inverting $\bfOmega$. For MM algorithm and PX-EM algorithm with $p\geq n$ case, we can evaluate $\bfOmega^{-1}$ using the identity $\bfOmega^{-1}=\bfU\tbfD\bfU^T$ with $\bfU$ $\tbfD$ from Algorithm 3 and 5. For PX-EM algorithm with $n>p$, we first define $\bfLam^{-1}=(\sige\mathbf{I}_p + \sigb\bfX^T\bfX)^{-1}$. Then using the matrix inverse lemma, we have $\bfX^T\bfOmega^{-1}=\bfLam^{-1}\bfX^T$. Therefore, we can express the FIM using the dual form:
+When handling the FIM, we can again make use of the pre-calculated eigenvectors and eigenvalues to avoid inverting $\bfOmega$. For MM algorithm and PX-EM algorithm with $p\geq n$ case, we can evaluate $\bfOmega^{-1}$ using the identity $\bfOmega^{-1}=\bfU\tbfD\bfU^T$ with $\bfU$, $\tbfD$ from Algorithm 3 and 5. For PX-EM algorithm with $n>p$, we first define $\bfLam^{-1}=(\sige\mathbf{I}_p + \sigb\bfX^T\bfX)^{-1}$. Then using the matrix inverse lemma, we have $\bfX^T\bfOmega^{-1}=\bfLam^{-1}\bfX^T$. Therefore, we can express the FIM using the dual form:
 \begin{align}
   \tr[(\bfOmega^{-1}\bfK)^2]=&\tr(\bfOmega^{-1}\bfX\bfX^T\bfOmega^{-1}\bfX\bfX^T)=\tr(\bfLam^{-1}\bfX^T\bfX\bfLam^{-1}\bfX^T\bfX)\\
   \tr[\bfOmega^{-1}\bfK\bfOmega^{-1}]=&\tr[\bfOmega^{-1}\bfX\bfX^T\bfOmega^{-1}]=\tr(\bfLam^{-2}\bfX^T\bfX)\\
@@ -352,7 +363,7 @@ and
 where the elements are calculated by $\Var(\bfy^T\bfM\bfK\bfM\bfy)=2\tr([\bfM\bfK\bfM\bfOmega]^2)$, $\Var(\bfy^T\bfM\bfy)=2\tr([\bfM\bfOmega]^2)$, $\Cov(\bfy^T\bfM\bfK\bfM\bfy,\bfy^T\bfM\bfy)=2\tr(\bfM\bfK\bfM\bfOmega\bfM\bfOmega)$. 
 
 ## Example
-```{r,eval = T}
+```{r,eval = F}
 library(VCM)
 n <- 1000
 d <- 1000
