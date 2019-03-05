@@ -42,6 +42,15 @@ knitr::opts_chunk$set(echo = TRUE)
 \def\bfq {\mathbf{q}}
 \def\bfSigtheta {\bfSig_{\bftheta}}
 \def\Cov {\mathrm{Cov}}
+\def\bfU {\mathbf{U}}
+\def\bfD {\mathbf{D}}
+\def\tbfD {\tilde{\mathbf{D}}}
+\def\td {\tilde{d}}
+\def\bfV {\mathbf{V}}
+\def\bfQ {\mathbf{Q}}
+\def\tbfQ {\tilde{\mathbf{Q}}}
+\def\tq {\tilde{q}}
+\def\bfLam {\mathbf{\Lambda}}
 
 This package contains three approaches for estimating variance components of linear model \cite{Jiang2016}: the parameter expanded EM (PX-EM) algorithm \cite{Liu1998,Foulley2000}, Minorization-Maximization (MM) algotirhm \cite{Zhou2018} and the Method of Moments (MoM) \cite{Wu2018}.
 
@@ -140,7 +149,61 @@ This PX-EM algorithm is summarized in Algorithm 1. After convergence, the poster
 \end{algorithmic}
 \end{algorithm}
 
+In practice. We can avoid frequently inverting the $p\times p$ matrix $\bfSig$ by conducting a single eigen-dedomposition on $\bfX\bfX^T$ or $\bfX^T\bfX$, depending on the relative sizes of $p$ and $n$. If $n\geq p$, we conduct the eigen-decomposition $\bfX^T\bfX=\bfV\bfQ\bfV^T$ before the iteration, where $\bfQ\in\mathbb{R}^{p\times p}$ is a diagonal matrix of eigenvalues $q_j$ and $\bfV\in\mathbb{R}^{p\times p}$ is a matrix whose columns are corresponding eigenvectors of $q_j$. The resulting algorithm is shown in Algorithm 2.
 
+\begin{algorithm}
+\caption{PX-EM algorithm for model (1) when $n\geq p$}
+\begin{algorithmic}
+\STATE {Initialization: $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$; conduct eigen-deomposition $\bfX^T\bfX=\bfV\bfQ\bfV^T$}.
+\REPEAT 
+\STATE \textbf{E-step:} At the $t$-th iteration, evaluate the posterior $\mathcal{N}(\bfbeta|\bfmu,\bfSig)$ given the current parameter estimates $\bftheta^{(t)}=\{\siget,\sigbt\}$, $\bfomegat$ and set $\delta^{(t)}=1$: 
+\begin{align}
+\begin{split}
+\tq_j& = q_j/\siget + 1/\sigbt,\ \mathrm{diag}(\tbfQ)=\tq=[\tq_1,...\tq_p]\\
+\bfmu &= \frac{1}{\siget}\bfV[\bfV^T\bfX^T(\bfy-\bfZ\bfomegat)\odot1/\tq]
+\end{split}\nonumber
+\end{align}
+\STATE \textbf{M-step:} Update the model parameters by 
+\begin{align}
+\begin{split}
+	\delta^{(t+1)}&= \frac{(\bfy-\bfZ\bfomegat)^T\bfX\bfmu}{\bfmu^T\bfX^T\bfX\bfmu + \sum_j^pq_j/\tq_j},\\
+	\bfomega^{(t+1)}&= (\bfX^T\bfX)^{-1}\bfX^T(\bfy-\delta\bfX\bfmu),\\
+	(\sigma_{e}^{(t+1)})^2&= \frac{1}{n_r}[||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2+\delta^2\sum_j^pq_j/\tq_j],\\
+	(\sigma_{\beta}^{(t+1)})^2&= \frac{1}{p}[\bfmu^T\bfmu + \sum_j^p1/\tq_j].
+\end{split}\nonumber
+\end{align}
+\STATE \textbf{Reduction-step:} Rescale $(\sigma_{e}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{e}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
+\UNTIL{the incomplete-data log-likelihood stop increasing or maximum iteration reached}
+\end{algorithmic}
+\end{algorithm}
+
+If $p> n$, we conduct the eigen-decomposition $\bfX\bfX^T=\bfU\bfD\bfU^T$ before the iteration, where $\bfD\in\mathbb{R}^{n\times n}$ is a diagonal matrix of eigenvalues $d_i$ and $\bfU\in\mathbb{R}^{n\times n}$ is a matrix whose columns are corresponding eigenvectors of $d_i$. The resulting algorithm is shown in Algorithm 3.
+
+\begin{algorithm}
+\caption{PX-EM algorithm for model (1) when $p> n$}
+\begin{algorithmic}
+\STATE {Initialization: $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$; conduct eigen-deomposition $\bfX\bfX^T=\bfU\bfD\bfU^T$}.
+\REPEAT 
+\STATE \textbf{E-step:} At the $t$-th iteration, evaluate the posterior $\mathcal{N}(\bfbeta|\bfmu,\bfSig)$ given the current parameter estimates $\bftheta^{(t)}=\{\siget,\sigbt\}$, $\bfomegat$ and set $\delta^{(t)}=1$: 
+\begin{align}
+\begin{split}
+\td_i& = d_i/\siget + 1/\sigbt,\ \mathrm{diag}(\tbfD)=\td=[\td_i,...\td_n]\\
+\bfmu &= \frac{1}{\siget}\bfX^T\bfU[\bfU^T(\bfy-\bfZ\bfomegat)\odot1/\td]
+\end{split}\nonumber
+\end{align}
+\STATE \textbf{M-step:} Update the model parameters by 
+\begin{align}
+\begin{split}
+	\delta^{(t+1)}&= \frac{(\bfy-\bfZ\bfomegat)^T\bfX\bfmu}{\bfmu^T\bfX^T\bfX\bfmu + \sum_i^nd_i/\td_i},\\
+	\bfomega^{(t+1)}&= (\bfX^T\bfX)^{-1}\bfX^T(\bfy-\delta\bfX\bfmu),\\
+	(\sigma_{e}^{(t+1)})^2&= \frac{1}{n_r}[||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2+\delta^2\sum_i^nd_i/\td_i],\\
+	(\sigma_{\beta}^{(t+1)})^2&= \frac{1}{p}[\bfmu^T\bfmu + \sum_i^n1/\td_i + (n-p)\sigbt].
+\end{split}\nonumber
+\end{align}
+\STATE \textbf{Reduction-step:} Rescale $(\sigma_{e}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{e}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
+\UNTIL{the incomplete-data log-likelihood stop increasing or maximum iteration reached}
+\end{algorithmic}
+\end{algorithm}
 
 ## MM algorithm
 Unlike the PX-EM algorithm, the MM algorithm maximize the incomplete-data log-likelihood by considering the variance components model (2) \cite{Zhou2018}. The incomplete-data log-likelihood is given as
@@ -175,7 +238,7 @@ By setting the derivative of $\mathcal{G}$-function to be zero, the resulting up
 (\sigma_e^{(t+1)})^2 &= (\sigma_e^{(t+1)})^2\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-2}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1})}}.
 \end{split}\nonumber
 \end{align}
-The resulting algorithm is summarized in Algorithm 2.
+The resulting algorithm is summarized in Algorithm 4.
 
 \begin{algorithm}
 \caption{MM algorithm for model (2)}
@@ -194,6 +257,28 @@ The resulting algorithm is summarized in Algorithm 2.
 \UNTIL{the incomplete-data log-likelihood stop increasing or maximum iteration reached}
 \end{algorithmic}
 \end{algorithm}
+
+To avoid frequently inverting $\bfOmega$ in the iterations, we can conduct eigen-decomposition on $\bfK=\bfU\bfD\bfU^T$ before the algorithm, where $\bfD\in\mathbb{R}^{n\times n}$ is a diagonal matrix of eigenvalues $d_i$ and $\bfU\in\mathbb{R}^{n\times n}$ is a matrix whose columns are corresponding eigenvectors of $d_i$. The resulting procedure is summarized in Algorithm 5.
+
+\begin{algorithm}
+\caption{Efficient MM algorithm for model (2)}
+\begin{algorithmic}
+\STATE {Initialization: $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$}; $\bfK=\bfU\bfD\bfU^T$.
+\REPEAT 
+\STATE 
+\begin{align}
+\begin{split}
+\td_i& = d_i/\siget + 1/\sigbt,\ \mathrm{diag}(\tbfD)=\td=[\td_i,...\td_n]\\
+\bfomegat &= (\bfZ^T\tbfD\bfZ)^{-1}\bfZ^T(\bfy\odot\td),\\
+(\sigma_{\beta}^{(t+1)})^2 &= (\sigma_{\beta}^{(t)})^2\sqrt{\frac{\sum_i^n[(\bfy_i-\bfZ_i^T\bfomegat)^2\td_i^2d_i]}{\sum_i^n\td_id_i}},\\
+(\sigma_e^{(t+1)})^2 &= (\sigma_e^{(t+1)})^2\sqrt{\frac{\sum_i^n[(\bfy_i-\bfZ_i^T\bfomegat)^2\td_i^2]}{\sum_i^n\td_i}}.
+\end{split}\nonumber
+\end{align}
+\UNTIL{the incomplete-data log-likelihood stop increasing or maximum iteration reached}
+\end{algorithmic}
+\end{algorithm}
+
+## Standard errors of variance components for MLE methods
 For MLE methods including MM and PX-EM, the covariance matrix of variance components estimates are calculated from inverse of Fisher Information Matrix (FIM). $FIM=-\mathbb{E}\left[\frac{\partial^2 \mathcal{L}}{\partial \bftheta^2}\right]=-\mathbb{E}\left[\frac{\partial^2}{\partial \bftheta^2} -\frac{1}{2}\log|\bfOmega|-\frac{1}{2}(\bfy-\bfZ\bfomega)^T\bfOmega^{-1}(\bfy-\bfZ\bfomega)\right]$. The first derivatives are: 
 \begin{align}
 \begin{split}
@@ -215,6 +300,14 @@ FIM=&-\frac{1}{2}\begin{bmatrix} \tr[(\bfOmega^{-1}\bfK)^2]-2\tr[(\bfOmega^{-1}\
 =&\frac{1}{2}\begin{bmatrix} \tr[(\bfOmega^{-1}\bfK)^2] & \tr(\bfOmega^{-1}\bfK\bfOmega^{-1})\\ \cdot & \tr[\bfOmega^{-2}] \end{bmatrix}.
 \end{align}
 Inverting the FIM leads to the covariance matrix of $\hbftheta$.
+
+When handling the FIM, we can agian make use of the pre-calculated eigenvectors and eigenvalues to avoid inverting $\bfOmega$. For MM algorithm and PX-EM algorithm with $p\geq n$ case, we can evaluate $\bfOmega^{-1}$ using the identity $\bfOmega^{-1}=\bfU\tbfD\bfU^T$ with $\bfU$ $\tbfD$ from Algorithm 3 and 5. For PX-EM algorithm with $n>p$, we first define $\bfLam^{-1}=(\sige\mathbf{I}_p + \sigb\bfX^T\bfX)^{-1}$. Then using the matrix inverse lemma, we have $\bfX^T\bfOmega^{-1}=\bfLam^{-1}\bfX^T$. Therefore, we can express the FIM using the dual form:
+\begin{align}
+  \tr[(\bfOmega^{-1}\bfK)^2]=&\tr(\bfOmega^{-1}\bfX\bfX^T\bfOmega^{-1}\bfX\bfX^T)=\tr(\bfLam^{-1}\bfX^T\bfX\bfLam^{-1}\bfX^T\bfX)\\
+  \tr[\bfOmega^{-1}\bfK\bfOmega^{-1}]=&\tr[\bfOmega^{-1}\bfX\bfX^T\bfOmega^{-1}]=\tr(\bfLam^{-2}\bfX^T\bfX)\\
+  \tr[\bfOmega^{-2}]=&n(\frac{1}{\sige})^2 - 2\frac{\sigb}{(\sige)^2}\tr[\bfLam^{-1}\bfX^T\bfX] + (\frac{\sigb}{\sige})^2\tr[\bfLam^{-1}\bfX^T\bfX\bfLam^{-1}\bfX^T\bfX],
+\end{align}
+where $\bfLam^{-1}=\bfV\tbfQ\bfV^T$ with $\bfV$ and $\tbfQ$ from Algorithm 2.
 
 
 ## Method of Moments
