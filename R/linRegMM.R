@@ -58,7 +58,7 @@ linRegMM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbose=
     }
   }
 
-invSigy <- eVec%*%(1/(eVal*sb2+se2)*t(eVec))    # solve(sb2*K+se2*diag(n))
+  invSigy <- eVec%*%(1/(eVal*sb2+se2)*t(eVec))    # solve(sb2*K+se2*diag(n))
   invSigyK <- invSigy%*%K
   FIM <- matrix(0,2,2)
   FIM[1,1] <- sum(invSigyK^2) / 2
