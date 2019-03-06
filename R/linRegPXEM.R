@@ -39,8 +39,8 @@ linRegPXEM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbos
   eVec <- eigenXX$vectors
 
   #initialize
-  if(is.null(se2)) {se2 <- drop(var(y))}
-  if(is.null(sb2)) {sb2 <- drop(var(y))}
+  if(is.null(se2)) {se2 <- drop(var(y))/2}
+  if(is.null(sb2)) {sb2 <- drop(var(y))/2}
   mu <- matrix(0,p,1)
   beta0 <- SZy - SZX %*% mu
   lb <- rep(0,maxIter)
