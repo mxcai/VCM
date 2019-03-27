@@ -149,7 +149,7 @@ ELBO^{(t)} &= \mathcal{Q}(\bftheta^{(t)} + \frac{1}{2}\log|2\pi\bfSig|),\mathrm{
 	(\sigma_{\beta}^{(t+1)})^2&= \frac{1}{p}[\bfmu^T\bfmu + \tr(\bfSig)].
 \end{split}\nonumber
 \end{align}
-\STATE \textbf{Reduction-step:} Rescale $(\sigma_{e}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{e}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
+\STATE \textbf{Reduction-step:} Rescale $(\sigma_{\beta}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{\beta}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
 \UNTIL{the incomplete-data log-likelihood ($ELBO^{(t)}$) stop increasing or maximum iteration reached}
 \end{algorithmic}
 \end{algorithm}
