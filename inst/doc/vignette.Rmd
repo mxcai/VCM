@@ -130,14 +130,14 @@ This PX-EM algorithm is summarized in Algorithm 1. After convergence, the poster
 \begin{algorithm}
 \caption{PX-EM algorithm for model (1)}
 \begin{algorithmic}
-\STATE {Initialization: Parameters are initialized by setting $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$}.
+\STATE {Initialization: Parameters are initialized by setting $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)/2$}.
 \REPEAT 
 \STATE \textbf{E-step:} At the $t$-th iteration, evaluate the posterior $\mathcal{N}(\bfbeta|\bfmu,\bfSig)$ given the current parameter estimates $\bftheta^{(t)}=\{\siget,\sigbt\}$, $\bfomegat$ and set $\delta^{(t)}=1$: 
 \begin{align}
 \begin{split}
 \bfSig^{-1} &= \frac{(\delta^{(t)})^{2}}{\siget}\bfX^T\bfX+\frac{1}{\sigbt}\mathbf{I}_{p},\\
 \bfmu &= \left(\frac{(\delta^{(t)})^{2}}{\siget}\bfX^T\bfX+\frac{1}{\sigbt}\mathbf{I}_{p}\right)^{-1}\frac{(\delta^{(t)})^{2}}{\siget}\bfX^T(\bfy-\bfZ\bfomegat),\\
-ELBO^{(t)} &= \mathcal{Q}(\bftheta^{(t)} + \frac{1}{2}\log|2\pi\bfSig|),\mathrm{\ where\ \mathcal{Q}\ is\ defined\ in\ Equation (4).}
+ELBO^{(t)} &= \mathcal{Q}(\bftheta^{(t)}) + \frac{1}{2}\log|2\pi\bfSig|,\mathrm{\ where\ \mathcal{Q}\ is\ defined\ in\ Equation (4).}
 \end{split}\nonumber
 \end{align}
 \STATE \textbf{M-step:} Update the model parameters by 
@@ -159,14 +159,14 @@ In practice. We can avoid frequently inverting the $p\times p$ matrix $\bfSig$ b
 \begin{algorithm}
 \caption{PX-EM algorithm for model (1) when $n\geq p$}
 \begin{algorithmic}
-\STATE {Initialization: $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$; conduct eigen-deomposition $\bfX^T\bfX=\bfV\bfQ\bfV^T$}.
+\STATE {Initialization: $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)/2$; conduct eigen-deomposition $\bfX^T\bfX=\bfV\bfQ\bfV^T$}.
 \REPEAT 
 \STATE \textbf{E-step:} At the $t$-th iteration, evaluate the posterior $\mathcal{N}(\bfbeta|\bfmu,\bfSig)$ given the current parameter estimates $\bftheta^{(t)}=\{\siget,\sigbt\}$, $\bfomegat$ and set $\delta^{(t)}=1$: 
 \begin{align}
 \begin{split}
 \tq_j& = q_j/\siget + 1/\sigbt,\ \mathrm{diag}(\tbfQ)=\tq=[\tq_1,...\tq_p]\\
 \bfmu &= \frac{1}{\siget}\bfV[\bfV^T\bfX^T(\bfy-\bfZ\bfomegat)\odot1/\tq]\\
-ELBO^{(t)} =& -\frac{n}{2}\log(2\pi\siget) - \frac{p}{2}\log(2\pi\sigbt) - \frac{1}{2\siget}||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2\\
+ELBO^{(t)} &= -\frac{n}{2}\log(2\pi\siget) - \frac{p}{2}\log(2\pi\sigbt) - \frac{1}{2\siget}||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2\\
 	& - \frac{1}{2\sigbt}\bfmu^T\bfmu - \frac{1}{2}\sum_j^p\log\tq_j.
 \end{split}\nonumber
 \end{align}
@@ -179,7 +179,7 @@ ELBO^{(t)} =& -\frac{n}{2}\log(2\pi\siget) - \frac{p}{2}\log(2\pi\sigbt) - \frac
 	(\sigma_{\beta}^{(t+1)})^2&= \frac{1}{p}[\bfmu^T\bfmu + \sum_j^p1/\tq_j].
 \end{split}\nonumber
 \end{align}
-\STATE \textbf{Reduction-step:} Rescale $(\sigma_{e}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{e}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
+\STATE \textbf{Reduction-step:} Rescale $(\sigma_{\beta}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{\beta}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
 \UNTIL{the incomplete-data log-likelihood ($ELBO^{(t)}$) stop increasing or maximum iteration reached}
 \end{algorithmic}
 \end{algorithm}
@@ -189,14 +189,14 @@ If $p> n$, we conduct the eigen-decomposition $\bfX\bfX^T=\bfU\bfD\bfU^T$ before
 \begin{algorithm}
 \caption{PX-EM algorithm for model (1) when $p> n$}
 \begin{algorithmic}
-\STATE {Initialization: $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$; conduct eigen-deomposition $\bfX\bfX^T=\bfU\bfD\bfU^T$}.
+\STATE {Initialization: $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)/2$; conduct eigen-deomposition $\bfX\bfX^T=\bfU\bfD\bfU^T$}.
 \REPEAT 
 \STATE \textbf{E-step:} At the $t$-th iteration, evaluate the posterior $\mathcal{N}(\bfbeta|\bfmu,\bfSig)$ given the current parameter estimates $\bftheta^{(t)}=\{\siget,\sigbt\}$, $\bfomegat$ and set $\delta^{(t)}=1$: 
 \begin{align}
 \begin{split}
 \td_i& = d_i/\siget + 1/\sigbt,\ \mathrm{diag}(\tbfD)=\td=[\td_i,...\td_n]\\
 \bfmu &= \frac{1}{\siget}\bfX^T\bfU[\bfU^T(\bfy-\bfZ\bfomegat)\odot1/\td]\\
-ELBO^{(t)} =& -\frac{n}{2}\log(2\pi\siget) - \frac{p}{2}\log(2\pi\sigbt) - \frac{1}{2\siget}||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2\\
+ELBO^{(t)} &= -\frac{n}{2}\log(2\pi\siget) - \frac{p}{2}\log(2\pi\sigbt) - \frac{1}{2\siget}||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2\\
 	& - \frac{1}{2\sigbt}\bfmu^T\bfmu - \frac{1}{2}\sum_i^n\log\td_i + \frac{p-n}{2}\log\sigbt.
 \end{split}\nonumber
 \end{align}
@@ -209,7 +209,7 @@ ELBO^{(t)} =& -\frac{n}{2}\log(2\pi\siget) - \frac{p}{2}\log(2\pi\sigbt) - \frac
 	(\sigma_{\beta}^{(t+1)})^2&= \frac{1}{p}[\bfmu^T\bfmu + \sum_i^n1/\td_i + (n-p)\sigbt].
 \end{split}\nonumber
 \end{align}
-\STATE \textbf{Reduction-step:} Rescale $(\sigma_{e}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{e}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
+\STATE \textbf{Reduction-step:} Rescale $(\sigma_{\beta}^{(t+1)})^2=(\delta^{(t+1)})^2(\sigma_{\beta}^{(t+1)})^2$ and reset $\delta^{(t+1)}=1$.
 \UNTIL{the incomplete-data log-likelihood ($ELBO^{(t)}$) stop increasing or maximum iteration reached}
 \end{algorithmic}
 \end{algorithm}
@@ -243,8 +243,8 @@ which separates the variance components in the log determinant of the likelihood
 By setting the derivative of $\mathcal{G}$-function to be zero, the resulting updates are given as follows:
 \begin{align}
 \begin{split}
-(\sigma_{\beta}^{(t+1)})^2 &= (\sigma_{\beta}^{(t)})^2\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-1}\bfK(\bfOmegat)^{-1}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1}\bfK)}}\\
-(\sigma_e^{(t+1)})^2 &= (\sigma_e^{(t+1)})^2\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-2}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1})}}.
+(\sigma_{\beta}^{(t+1)})^2 &= \sigbt\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-1}\bfK(\bfOmegat)^{-1}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1}\bfK)}}\\
+(\sigma_e^{(t+1)})^2 &= \siget\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-2}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1})}}.
 \end{split}\nonumber
 \end{align}
 The convergence of MM algorithm is checked by evaluating the log-likelihood at each iteration. The resulting algorithm is summarized in Algorithm 4.
@@ -252,7 +252,7 @@ The convergence of MM algorithm is checked by evaluating the log-likelihood at e
 \begin{algorithm}
 \caption{MM algorithm for model (2)}
 \begin{algorithmic}
-\STATE {Initialization: Parameters are initialized by setting $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$}.
+\STATE {Initialization: Parameters are initialized by setting $\bfomega=(\bfZ^T\bfZ)^{-1}\bfZ^T\bfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)/2$}.
 \REPEAT 
 \STATE 
 \begin{align}
@@ -273,7 +273,7 @@ To avoid frequently inverting $\bfOmega$ in the iterations, we can conduct eigen
 \begin{algorithm}
 \caption{Efficient MM algorithm for model (2)}
 \begin{algorithmic}
-\STATE {Initialization: $\bfK=\bfU\bfD\bfU^T$, $\bbfZ=\bfU^T\bfZ$, $\bbfy=\bfU^T\bfy$, $\bfomega=(\bbfZ^T\bbfZ)^{-1}\bbfZ^T\bbfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)$}.
+\STATE {Initialization: $\bfK=\bfU\bfD\bfU^T$, $\bbfZ=\bfU^T\bfZ$, $\bbfy=\bfU^T\bfy$, $\bfomega=(\bbfZ^T\bbfZ)^{-1}\bbfZ^T\bbfy$, $\sige=\sigb=\Var(y-\bfZ\bfomega)/2$}.
 \REPEAT 
 \STATE 
 \begin{align}
@@ -328,11 +328,11 @@ where $\bfLam^{-1}=\bfV\tbfQ\bfV^T$ with $\bfV$ and $\tbfQ$ from Algorithm 2.
 ## Method of Moments
 While the MM algorithm and PX-EM algorithm adopts the MLE, MoM estimator is obtained by first multiplying Equation (2) by the projection matrix $\bfM=\mathbf{I}_{n}-\bfZ(\bfZ^T\bfZ)^{-1}\bfZ^T$ and then solving the following ordinary least squares (OLS) problem \cite{Wu2018}:
 \begin{equation}
-argmin_{\sigb,\sige}||(\bfM\bfy)^T(\bfM\bfy)-(\sigb\bfM\bfK\bfM+\sige\bfM)||_F^2.
+argmin_{\sigb,\sige}||(\bfM\bfy)(\bfM\bfy)^T-(\sigb\bfM\bfK\bfM+\sige\bfM)||_F^2.
 \end{equation}
 Using the fact that $||\mathbf{A}||_F=\sqrt{\tr(\mathbf{A}\mathbf{A}^T)}$, the OLS problem in (11) can be re-written as
 \begin{equation*}
-argmin_{\sigb,\sige}\tr[((\bfM\bfy)^T(\bfM\bfy)-(\sigb\bfM\bfK\bfM+\sige\bfM))((\bfM\bfy)^T(\bfM\bfy)-(\sigb\bfM\bfK\bfM+\sige\bfM))^T],
+argmin_{\sigb,\sige}\tr[((\bfM\bfy)(\bfM\bfy)^T-(\sigb\bfM\bfK\bfM+\sige\bfM))((\bfM\bfy)(\bfM\bfy)^T-(\sigb\bfM\bfK\bfM+\sige\bfM))^T],
 \end{equation*}
 which leads to the normal equation
 \begin{equation}
@@ -367,7 +367,7 @@ and
 where the elements are calculated by $\Var(\bfy^T\bfM\bfK\bfM\bfy)=2\tr([\bfM\bfK\bfM\bfOmega]^2)$, $\Var(\bfy^T\bfM\bfy)=2\tr([\bfM\bfOmega]^2)$, $\Cov(\bfy^T\bfM\bfK\bfM\bfy,\bfy^T\bfM\bfy)=2\tr(\bfM\bfK\bfM\bfOmega\bfM\bfOmega)$. 
 
 ## Example
-```{r,eval = F}
+```{r,eval = T}
 library(VCM)
 n <- 1000
 d <- 1000
