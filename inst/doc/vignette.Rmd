@@ -111,7 +111,7 @@ It the M-step, the new estimates of parameter $\bftheta$ is obtained by setting 
 \begin{align}
 \begin{split}
 	\delta&= \frac{(\bfy-\bfZ\bfomega)^T\bfX\bfmu}{\bfmu^T\bfX^T\bfX\bfmu + \tr(\bfX^T\bfX\bfSig)},\\
-	\bfomega&= (\bfX^T\bfX)^{-1}\bfX^T(\bfy-\delta\bfX\bfmu),\\
+	\bfomega&= (\bfZ^T\bfZ)^{-1}\bfZ^T(\bfy-\delta\bfX\bfmu),\\
 	\sige&= \frac{1}{n}[||\bfy-\bfZ\bfomega - \delta\bfX\bfmu||^2+\delta^2\tr(\bfX^T\bfX\bfSig)],\\
 	\sigb&= \frac{1}{p}[\bfmu^T\bfmu + \tr(\bfSig)].
 \end{split}\nonumber
@@ -144,7 +144,7 @@ ELBO^{(t)} &= \mathcal{Q}(\bftheta^{(t)}) + \frac{1}{2}\log|2\pi\bfSig|,\mathrm{
 \begin{align}
 \begin{split}
 	\delta^{(t+1)}&= \frac{(\bfy-\bfZ\bfomegat)^T\bfX\bfmu}{\bfmu^T\bfX^T\bfX\bfmu + \tr(\bfX^T\bfX\bfSig)},\\
-	\bfomega^{(t+1)}&= (\bfX^T\bfX)^{-1}\bfX^T(\bfy-\delta\bfX\bfmu),\\
+	\bfomega^{(t+1)}&= (\bfZ^T\bfZ)^{-1}\bfZ^T(\bfy-\delta\bfX\bfmu),\\
 	(\sigma_{e}^{(t+1)})^2&= \frac{1}{n_r}[||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2+\delta^2\tr(\bfX^T\bfX\bfSig)],\\
 	(\sigma_{\beta}^{(t+1)})^2&= \frac{1}{p}[\bfmu^T\bfmu + \tr(\bfSig)].
 \end{split}\nonumber
@@ -174,7 +174,7 @@ ELBO^{(t)} &= -\frac{n}{2}\log(2\pi\siget) - \frac{p}{2}\log(2\pi\sigbt) - \frac
 \begin{align}
 \begin{split}
 	\delta^{(t+1)}&= \frac{(\bfy-\bfZ\bfomegat)^T\bfX\bfmu}{\bfmu^T\bfX^T\bfX\bfmu + \sum_j^pq_j/\tq_j},\\
-	\bfomega^{(t+1)}&= (\bfX^T\bfX)^{-1}\bfX^T(\bfy-\delta\bfX\bfmu),\\
+	\bfomega^{(t+1)}&= (\bfZ^T\bfZ)^{-1}\bfZ^T(\bfy-\delta\bfX\bfmu),\\
 	(\sigma_{e}^{(t+1)})^2&= \frac{1}{n_r}[||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2+\delta^2\sum_j^pq_j/\tq_j],\\
 	(\sigma_{\beta}^{(t+1)})^2&= \frac{1}{p}[\bfmu^T\bfmu + \sum_j^p1/\tq_j].
 \end{split}\nonumber
@@ -204,7 +204,7 @@ ELBO^{(t)} &= -\frac{n}{2}\log(2\pi\siget) - \frac{p}{2}\log(2\pi\sigbt) - \frac
 \begin{align}
 \begin{split}
 	\delta^{(t+1)}&= \frac{(\bfy-\bfZ\bfomegat)^T\bfX\bfmu}{\bfmu^T\bfX^T\bfX\bfmu + \sum_i^nd_i/\td_i},\\
-	\bfomega^{(t+1)}&= (\bfX^T\bfX)^{-1}\bfX^T(\bfy-\delta\bfX\bfmu),\\
+	\bfomega^{(t+1)}&= (\bfZ^T\bfZ)^{-1}\bfZ^T(\bfy-\delta\bfX\bfmu),\\
 	(\sigma_{e}^{(t+1)})^2&= \frac{1}{n_r}[||\bfy-\bfZ\bfomegat - \delta\bfX\bfmu||^2+\delta^2\sum_i^nd_i/\td_i],\\
 	(\sigma_{\beta}^{(t+1)})^2&= \frac{1}{p}[\bfmu^T\bfmu + \sum_i^n1/\td_i + (n-p)\sigbt].
 \end{split}\nonumber
