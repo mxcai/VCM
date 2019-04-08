@@ -3,9 +3,9 @@ linRegPXEM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbos
   p <- ncol(X)
   n <- length(y)
 
-  ym <- mean(y)
-  Xm <- colMeans(X)
   X <- scale(X)/sqrt(p)
+  ym <- mean(y)
+  Xm <- colMeans(X)   # this should be zero after scaling
 
   if(is.null(Z)){
     Z <- matrix(1,n,1)
