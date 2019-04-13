@@ -58,6 +58,7 @@ linRegMM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbose=
       break
     }
   }
+  mu <- 1/se2 * t(X) %*% (eVec %*% ((yt - Zt%*%beta0) / D))
 
   invSigy <- eVec%*%(1/(eVal*sb2+se2)*t(eVec))    # solve(sb2*K+se2*diag(n))
   invSigyK <- invSigy%*%K
@@ -67,7 +68,7 @@ linRegMM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbose=
   FIM[1,2] <- FIM[2,1] <- sum(invSigyK*invSigy) / 2
   covSig <- solve(FIM)  #inverse of FIM
 
-  bayesRegMM <- list(beta0=beta0,sb2=sb2,se2=se2,K=K,iter=iter,covSig=covSig,lb=lb)
+  bayesRegMM <- list(beta0=beta0,sb2=sb2,se2=se2,mu=mu,K=K,iter=iter,covSig=covSig,lb=lb)
 
   attr(bayesRegMM,"class") <- "VCM_MM"
   bayesRegMM
