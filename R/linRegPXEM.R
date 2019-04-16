@@ -3,9 +3,14 @@ linRegPXEM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbos
   p <- ncol(X)
   n <- length(y)
 
-  X <- scale(X)/sqrt(p)
   ym <- mean(y)
-  Xm <- colMeans(X)   # this should be zero after scaling
+  y  <- y-ym  # centerize y
+  Xm <- colMeans(X)
+  X <- scale(X,center = T,scale = F)  # centerize X
+  Xsd <- sqrt(colMeans(X^2))
+  X <- t(t(X)/Xsd)/sqrt(p)  # scale X
+
+  # K <- X %*% t(X)
 
   if(is.null(Z)){
     Z <- matrix(1,n,1)
@@ -15,8 +20,8 @@ linRegPXEM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbos
 
   #calculate sth in advance
   if(ncol(Z)==1){
-    SZy <- ym
-    SZX <- Xm
+    SZy <- 0
+    SZX <- rep(0,p)
     # X <- scale(X,scale = F,center = T)
     # y <- y - ym
   } else {
@@ -99,8 +104,15 @@ linRegPXEM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbos
     se2 <- ifelse(se2<1e-6,1e-6,se2)
   }
 
-  w  <- c(beta0,mu)
   gamma <- p - sum(1/D1)/sb2
+
+  # recover beta0 and mu
+  mu <- mu/Xsd/sqrt(p)
+  if(ncol(Z)==1){
+    beta0 <- beta0 + ym - colSums(mu*Xm)
+  } else{
+    beta0 <- beta0 + solve(ZZ,colSums(Z)*(ym-sum(mu*Xm)))  # = beta0 - (Z^TZ)^-1Z^T[(y^bar-X^bar%*%mu),...,(y^bar-X^bar%*%mu)]
+  }
 
   FIM <- matrix(0,2,2)
 
@@ -120,6 +132,11 @@ linRegPXEM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbos
     FIM[2,2] <- sum(invSigy^2) / 2                        # tr(Omega^-2)
     FIM[1,2] <- FIM[2,1] <- sum(invSigyK*invSigy) / 2     # tr(Omega^-1XX^TOmega^-1)
   }
+  # invSigy <- solve(sb2*XX+se2*diag(n))
+  # invSigyK <- invSigy%*%XX
+  # FIM[1,1] <- sum(invSigyK^2) / 2
+  # FIM[2,2] <- sum(invSigy^2) / 2
+  # FIM[1,2] <- FIM[2,1] <- sum(invSigyK*invSigy) / 2
   covSig <- solve(FIM)  #inverse of FIM
 
   bayesReg <- list(beta0=beta0,sb2=sb2,se2=se2,mu=mu,gamma=gamma,iter=iter,covSig=covSig,lb=lb)
