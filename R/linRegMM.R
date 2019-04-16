@@ -4,7 +4,11 @@ linRegMM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbose=
   n <- length(y)
 
   ym <- mean(y)
-  X <- scale(X)/sqrt(p)
+  y  <- y-ym  # centerize y
+  Xm <- colMeans(X)
+  X <- scale(X,center = T,scale = F)  # centerize X
+  Xsd <- sqrt(colMeans(X^2))
+  X <- t(t(X)/Xsd)/sqrt(p)  # scale X
   K <- X %*% t(X)
 
   if(is.null(Z)){
@@ -15,7 +19,7 @@ linRegMM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbose=
 
   #calculate sth in advance
   if(ncol(Z)==1){
-    SZy <- ym
+    SZy <- 0
   } else {
     ZZ <- t(Z)%*%Z
     SZy <- solve(ZZ,t(Z)%*%y)
@@ -58,7 +62,15 @@ linRegMM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbose=
       break
     }
   }
-  mu <- 1/se2 * t(X) %*% (eVec %*% ((yt - Zt%*%beta0) / D))
+  mu <- 1/se2 * t(X) %*% (eVec %*% ((yt - Zt%*%beta0) / D))  # after covnergence obtain mu using one E-step
+  # recover beta0 and mu
+  mu <- mu/Xsd/sqrt(p)
+  if(ncol(Z)==1){
+    beta0 <- beta0 + ym - colSums(mu*Xm)
+  } else{
+    beta0 <- beta0 + solve(ZZ,colSums(Z)*(ym-sum(mu*Xm)))  # = beta0 - (Z^TZ)^-1Z^T[(y^bar-X^bar%*%mu),...,(y^bar-X^bar%*%mu)]
+  }
+
 
   invSigy <- eVec%*%(1/(eVal*sb2+se2)*t(eVec))    # solve(sb2*K+se2*diag(n))
   invSigyK <- invSigy%*%K
