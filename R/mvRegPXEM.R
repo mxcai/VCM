@@ -178,7 +178,7 @@ mvRegPXEM <- function(X,Y,Z=NULL,maxIter=1500,tol=1e-6,se2_init=NULL,sb2_init=NU
 
 
   bayesReg <- list(beta0=beta0_all,sb2=sb2_all,se2=se2_all,mu=mu_all,gamma=gamma_all,iter=iter_all,covSig=covSig_all,lb=lb_all)
-  attr(bayesReg,"class") <- "mvVCM_PXEM"
+  class(bayesReg) <- c("mvVCM","PXEM")
   bayesReg
 
 }
