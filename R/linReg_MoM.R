@@ -61,6 +61,6 @@ linReg_MoM <- function(X,y,Z=NULL){
 
   ret <- list(sb2=sb2, se2=se2, K=K, covSig=covSig, h=h, se_h=se_h)
 
-  class(ret) <- c("mvVCM","MoM")
+  class(ret) <- c("VCM","MoM")
   ret
 }
