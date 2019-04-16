@@ -140,7 +140,7 @@ linRegPXEM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbos
   covSig <- solve(FIM)  #inverse of FIM
 
   bayesReg <- list(beta0=beta0,sb2=sb2,se2=se2,mu=mu,gamma=gamma,iter=iter,covSig=covSig,lb=lb)
-  attr(bayesReg,"class") <- "VCM_PXEM"
+  class(bayesReg) <- c("VCM","PXEM")
   bayesReg
 
 }
