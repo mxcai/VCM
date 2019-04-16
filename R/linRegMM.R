@@ -82,7 +82,7 @@ linRegMM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbose=
 
   bayesRegMM <- list(beta0=beta0,sb2=sb2,se2=se2,mu=mu,K=K,iter=iter,covSig=covSig,lb=lb)
 
-  attr(bayesRegMM,"class") <- "VCM_MM"
+  class(bayesRegMM) <- c("VCM","MM")
   bayesRegMM
 }
 
