@@ -1,4 +1,4 @@
-predict.mvVCM_PXEM <- function(object,Xnew,Znew=NULL){
+predict.mvVCM <- function(object,Xnew,Znew=NULL){
   nY <- length(object$sb2)
   n <- nrow(Xnew)
   q <- nrow(object$beta0)
@@ -19,4 +19,24 @@ predict.mvVCM_PXEM <- function(object,Xnew,Znew=NULL){
   }
 
   return(Y_hat)
+}
+
+
+predict.VCM <- function(object,Xnew,Znew=NULL){
+  n <- nrow(Xnew)
+  q <- nrow(object$beta0)
+
+  if(n!=nrow(Znew)) stop("Inputs X and Z do not match.")
+
+  if(is.null(Znew)) {
+    Znew <- matrix(1,n,1)
+  } else {
+    Znew <- cbind(1,Znew)
+  }
+
+  if(q!=ncol(Znew)) stop("Inputs arguments object and Z are not compatible.")
+
+  y_hat <- Znew%*%object$beta0 + Xnew%*%object$mu
+
+  return(y_hat)
 }
