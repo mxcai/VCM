@@ -3,7 +3,7 @@ mvRegPXEM <- function(X,Y,Z=NULL,maxIter=1500,tol=1e-6,se2_init=NULL,sb2_init=NU
   Y <- as.matrix(Y)
   nY <- ncol(Y)
   p <- ncol(X)
-  n <- nrow(y)
+  n <- nrow(Y)
 
   Ym <- colMeans(Y)
   Y <- scale(Y,center = T,scale = F)  # centerize y
