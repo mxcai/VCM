@@ -17,21 +17,21 @@ Z <- matrix(rnorm(n*q),n,q)
 omega <- matrix(c(11:15,51:55,-2:2),q,nY)
 y1 <- Z%*%omega
 
-y  <- y0 + y1 + sqrt(se2)*rnorm(n)
+Y  <- y0 + y1 + sqrt(se2)*rnorm(n)
 
-fit_mvPXEM <- mvRegPXEM(X=X,Y=y,Z = Z,tol = 1e-6,maxIter =200)
+fit_mvPXEM <- mvRegPXEM(X=X,Y=Y,Z = Z,tol = 1e-6,maxIter =200)
 Yhat_PX <- predict(fit_mvPXEM,X,Z)
 colMeans((Yhat_PX)^2)  # MSE for mv-PXEM
 
-fit_PXEM <- linRegPXEM(X=X,y=y[,1],Z = Z,tol = 1e-6,maxIter =200)
+fit_PXEM <- linRegPXEM(X=X,y=Y[,1],Z = Z,tol = 1e-6,maxIter =200)
 Yhat_PX3 <- predict(fit_PXEM,X,Z)
 mean((Yhat_PX3)^2)  # MSE for PXEM
 
-fit_mvMM <- mvRegMM(X=X,Y=y,Z = Z,tol = 1e-6,maxIter =200)
+fit_mvMM <- mvRegMM(X=X,Y=Y,Z = Z,tol = 1e-6,maxIter =200)
 Yhat_MM <- predict(fit_mvMM,X,Z)
 colMeans((Yhat_MM)^2)  # MSE for mv-MM
 
-fit_MM <- linRegMM(X=X,y=y[,3],Z=Z,tol=1e-6,maxIter = 200)
+fit_MM <- linRegMM(X=X,y=Y[,3],Z=Z,tol=1e-6,maxIter = 200)
 Yhat_MM3 <- predict(fit_MM,X,Z)
 mean((Yhat_MM3)^2)  # MSE for MM
 
