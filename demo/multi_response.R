@@ -23,7 +23,7 @@ fit_mvPXEM <- mvRegPXEM(X=X,Y=Y,Z = Z,tol = 1e-6,maxIter =200)
 Yhat_PX <- predict(fit_mvPXEM,X,Z)
 colMeans((Yhat_PX)^2)  # MSE for mv-PXEM
 
-fit_PXEM <- linRegPXEM(X=X,y=Y[,1],Z = Z,tol = 1e-6,maxIter =200)
+fit_PXEM <- linRegPXEM(X=X,y=Y[,3],Z = Z,tol = 1e-6,maxIter =200)
 Yhat_PX3 <- predict(fit_PXEM,X,Z)
 mean((Yhat_PX3)^2)  # MSE for PXEM
 
