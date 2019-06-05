@@ -56,7 +56,7 @@ corr_ss <- function(z1,z2,K1,K2,K12,n1,n2,Z1=NULL,Z2=NULL,group=NULL){
   trK12SQ <- sum(diag(MK12%*%t(K12M)))
 
   S3 <- trK12SQ/(m1-q1)/(m2-q2)
-  zz12 <- z1*z2/sqrt(n1*n2)
+  zz12 <- z1*z2/sqrt(n1)/sqrt(n2)
   c3 <- sum(zz12)/p
 
   delta <- c3/S3
