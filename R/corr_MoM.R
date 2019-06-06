@@ -75,45 +75,48 @@ corr_MoM <- function(y,z,X1,X2,Z1=NULL,Z2=NULL){
   covBy <- matrix(0,2,2)
   if(q1==1){
     Sigmay <- sigmay[1]*K1 + sigmay[2]*M1
-    K1S <- K1%*%Sigmay
-
-    covBy[1,1] <- sum(K1S^2) * 2
-    covBy[2,2] <- sum(Sigmay^2) * 2
-    covBy[1,2] <- covBy[2,1] <- sum(K1S*Sigmay) * 2
   } else{
-    MSy <- sigmay[1]*MK1%*%M1 + sigmay[2]*M1
-    MK1MS <- MK1 %*% MSy
-
-    covBy[1,1] <- sum(MK1MS^2) * 2
-    covBy[2,2] <- sum(MSy^2) * 2
-    covBy[1,2] <- covBy[2,1] <- sum(MK1MS*MSy) * 2
+    Sigmay <- sigmay[1]*MK1%*%M1 + sigmay[2]*M1
   }
+  K1S <- MK1%*%Sigmay
+
+  covBy[1,1] <- sum(K1S^2) * 2
+  covBy[2,2] <- sum(Sigmay^2) * 2
+  covBy[1,2] <- covBy[2,1] <- sum(K1S*Sigmay) * 2
   covSigy <- invSy %*% covBy %*% invSy
 
   # Sandwich estimator for variance of sig_z and sig_2
   covBz <- matrix(0,2,2)
   if(q2==1){
     Sigmaz <- sigmaz[1]*K2 + sigmaz[2]*M2
-    K2S <- K2%*%Sigmaz
-
-    covBz[1,1] <- sum(K2S^2) * 2
-    covBz[2,2] <- sum(Sigmaz^2) * 2
-    covBz[1,2] <- covBz[2,1] <- sum(K2S*Sigmaz) * 2
   } else{
-    MSz <- sigmaz[1]*MK2%*%M2 + sigmaz[2]*M2
-    MK2MS <- MK2 %*% MSz
-
-    covBz[1,1] <- sum(MK2MS^2) * 2
-    covBz[2,2] <- sum(MSz^2) * 2
-    covBz[1,2] <- covBz[2,1] <- sum(MK2MS*MSz) * 2
+    Sigmaz <- sigmaz[1]*MK2%*%M2 + sigmaz[2]*M2
   }
+  K2S <- MK2%*%Sigmaz
+
+  covBz[1,1] <- sum(K2S^2) * 2
+  covBz[2,2] <- sum(Sigmaz^2) * 2
+  covBz[1,2] <- covBz[2,1] <- sum(K2S*Sigmaz) * 2
   covSigz <- invSz %*% covBz %*% invSz
 
+  # sandwich estimator for covariance cov
+  Omega <- Xt <- matrix(0,n1+n2,n1+n2)
+  Omega[1:n1,1:n1] <- Sigmay
+  Omega[1:n1,(n1+1):(n1+n2)] <- cov * MK12
+  Omega[(n1+1):(n1+n2),1:n1] <- cov * t(MK12)
+  Omega[(n1+1):(n1+n2),(n1+1):(n1+n2)] <- Sigmaz
+  Xt[1:n1,(n1+1):(n1+n2)] <- MK12
+  Xt[(n1+1):(n1+n2),1:n1] <- t(MK12)
+  OmegaXt <- Omega %*% Xt
+
+  varByz <- sum(OmegaXt^2) / 2
+  var_cov <- varByz/trK12sq/trK12sq
+
   # calculate variance of rho using Delta method
-  g <- -0.5*cov*c(1/sqrt(sigmay[1]^3*sigmaz[1]),1/sqrt(sigmay[1]*sigmaz[1]^3))
-  var_rho <- sum(g^2*c(covSigy[1,1],covSigz[1,1]))
+  g <- -c(1/sqrt(sigmay[1]*sigmaz[1]),0.5*cov/sqrt(sigmay[1]^3*sigmaz[1]),0.5*cov/sqrt(sigmay[1]*sigmaz[1]^3))
+  var_rho <- sum(g^2*c(var_cov,covSigy[1,1],covSigz[1,1]))
 
   Sigma <- matrix(c(sigmay,sigmaz,sqrt(diag(covSigy)),sqrt(diag(covSigz))),2,4,byrow = T)
 
-  ret <- list(Sigma=Sigma, rho=c(rho,sqrt(var_rho)), K1=K1, K2=K2, covSigy=covSigy, covSigz=covSigz, cov = cov)
+  ret <- list(Sigma=Sigma, rho=c(rho,sqrt(var_rho)), K1=K1, K2=K2, covSigy=covSigy, covSigz=covSigz, cov = c(cov,sqrt(var_cov)))
 }
