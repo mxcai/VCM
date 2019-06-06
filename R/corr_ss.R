@@ -53,15 +53,15 @@ corr_ss <- function(z1,z2,K1,K2,K12,n1,n2,Z1=NULL,Z2=NULL,group=NULL){
   h2 <- c2/S2
 
   # calculate co-heritability
-  trK12SQ <- sum(diag(MK12%*%t(K12M)))
+  trK12SQ <- sum(MK12 *K12M)# sum(diag(MK12%*%t(K12M)))
 
   S3 <- trK12SQ/(m1-q1)/(m2-q2)
   zz12 <- z1*z2/sqrt(n1)/sqrt(n2)
   c3 <- sum(zz12)/p
 
-  delta <- c3/S3
+  h12 <- c3/S3
 
-  rho <- delta/sqrt(h1*h2)
+  rho <- h12/sqrt(h1*h2)
 
   if(is.null(group)){
     # compute standard error by Jackknife
@@ -74,7 +74,7 @@ corr_ss <- function(z1,z2,K1,K2,K12,n1,n2,Z1=NULL,Z2=NULL,group=NULL){
     var_h2 <- var(c2_jf)/S2/S2*(p-1)
 
     c3_jf <- (sum(zz12)-zz12)/(p-1)
-    var_delta <- var(c3_jf)/S3/S3*(p-1)
+    var_h12 <- var(c3_jf)/S3/S3*(p-1)
 
     var_rho <- var(c3_jf/sqrt(c1_jf*c2_jf)) * S1*S2/S3/S3 * (p-1)
   } else{
@@ -100,14 +100,14 @@ corr_ss <- function(z1,z2,K1,K2,K12,n1,n2,Z1=NULL,Z2=NULL,group=NULL){
     var_h2 <- var(c2_jf)/S2/S2*(ngroup-1)
 
     c3_jf <- (sum(zz12)-zj[3,])/(p-zj[4,])
-    var_delta <- var(c3_jf)/S3/S3*(ngroup-1)
+    var_h12 <- var(c3_jf)/S3/S3*(ngroup-1)
 
     var_rho <- var(c3_jf/sqrt(c1_jf*c2_jf)) * S1*S2/S3/S3 * (ngroup-1)
   }
 
   H <- matrix(0,2,4)
-  H[1,] <- c(h1,h2,delta,rho)
-  H[2,] <- sqrt(c(var_h1,var_h2,var_delta,var_rho))
+  H[1,] <- c(h1,h2,h12,rho)
+  H[2,] <- sqrt(c(var_h1,var_h2,var_h12,var_rho))
 
   colnames(H) <- c("h1","h2","h12","rho")
 
