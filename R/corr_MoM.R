@@ -52,14 +52,14 @@ corr_MoM <- function(y,z,K1,K2,K12,Z1=NULL,Z2=NULL){
   # yKz <- sum(Xy*Xz)
 
   # solve for expression level vc model
-  Sy <- matrix(c(trK1sq, trK1, trK1, n1),2,2)
+  Sy <- matrix(c(trK1sq, trK1, trK1, n1-q1),2,2)
   cy <- c(t(y)%*%K1%*%y, sum(y^2))
 
   invSy <- solve(Sy)
   sigmay <- invSy %*% cy
 
   # solve for phenotype level vc model
-  Sz <- matrix(c(trK2sq, trK2, trK2, n2),2,2)
+  Sz <- matrix(c(trK2sq, trK2, trK2, n2-q2),2,2)
   cz <- c(t(z)%*%K2%*%z, sum(z^2))
 
   invSz <- solve(Sz)
