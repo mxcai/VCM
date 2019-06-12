@@ -1,11 +1,11 @@
-corr_MoM <- function(y,z,X1,X2,Z1=NULL,Z2=NULL){
+corr_MoM <- function(y,z,K1,K2,K12,Z1=NULL,Z2=NULL){
   n1 <- length(y)
   n2 <- length(z)
-  p <- ncol(X1)
+  # p <- ncol(X1)
 
-  K1 <- X1%*%t(X1)
-  K2 <- X2%*%t(X2)
-  K12 <- X1%*%t(X2)
+  # K1 <- X1%*%t(X1)
+  # K2 <- X2%*%t(X2)
+  # K12 <- X1%*%t(X2)
 
   if(is.null(Z1)){
     Z1 <- matrix(1,n1,1)
