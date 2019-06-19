@@ -55,7 +55,11 @@ corr_ss <- function(z1,z2,K1,K2,K12,n1,n2,Z1=NULL,Z2=NULL,group=NULL){
   # calculate co-heritability
   trK12SQ <- sum(MK12 *K12M)# sum(diag(MK12%*%t(K12M)))
 
-  S3 <- trK12SQ/(m1-q1)/(m2-q2) - 1/sqrt(m1-q1)/sqrt(m2-q2) + 1/sqrt(n1)/sqrt(n2)
+  if(is.logical(all.equal(K1,K2))){
+    S3 <- trK12SQ/(m1-q1)/(m2-q2) - 1/sqrt(m1-q1)/sqrt(m2-q2) + 1/sqrt(n1)/sqrt(n2)
+  } else{
+    S3 <- trK12SQ/(m1-q1)/(m2-q2)# - 1/sqrt(m1-q1)/sqrt(m2-q2) + 1/sqrt(n1)/sqrt(n2)
+  }
   zz12 <- z1*z2/sqrt(n1)/sqrt(n2)
   c3 <- sum(zz12)/p
 
@@ -111,5 +115,5 @@ corr_ss <- function(z1,z2,K1,K2,K12,n1,n2,Z1=NULL,Z2=NULL,group=NULL){
 
   colnames(H) <- c("h1","h2","h12","rho")
 
-  ret <- list(H=H,K1=K1,K2=K2,K12=K12,S1=S1,S2=S2,S3=S3,c1=c2,c2=c2,c3=c3,trK1SQ=trK1SQ,trK2SQ=trK2SQ,trK12SQ=trK12SQ,m1=m1,q1=q1,m2=m2,q2=q2)
+  ret <- list(H=H,K1=K1,K2=K2,K12=K12,S1=S1,S2=S2,S3=S3,c1=c2,c2=c2,c3=c3,trK1SQ=trK1SQ,trK2SQ=trK2SQ,trK12SQ=trK12SQ,trSQK1=trSQK1,trSQK2=trSQK2,m1=m1,q1=q1,m2=m2,q2=q2)
 }
