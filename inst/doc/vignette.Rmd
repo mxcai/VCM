@@ -17,7 +17,10 @@ knitr::opts_chunk$set(echo = TRUE)
 \def\bfy {\mathbf{y}}
 \def\bfZ {\mathbf{Z}}
 \def\bfK {\mathbf{K}}
+\def\bfI {\mathbf{I}}
+\def\bfs {\mathbf{s}}
 \def\bfomega {\bm{\omega}}
+\def\hbfomega {\hat{\bm{\omega}}}
 \def\hbfomega {\hat{\bfomega}}
 \def\sigb {\sigma_{\beta}^2}
 \def\sige {\sigma_{e}^2}
@@ -36,6 +39,7 @@ knitr::opts_chunk$set(echo = TRUE)
 \def\siget {(\sigma_{e}^{(t)})^2}
 \def\sigbt {(\sigma_{\beta}^{(t)})^2}
 \def\bfOmega {\bm{\Omega}}
+\def\hbfOmega {\hat{\bm{\Omega}}}
 \def\bfOmegat {\bfOmega^{(t)}}
 \def\bfM {\mathbf{M}}
 \def\bfS {\mathbf{S}}
@@ -58,7 +62,7 @@ This package contains three approaches for estimating variance components of lin
 
 ## Variance components model
 
-Suppose we have dataset $\{\bfX,\bfZ,\bfy\}$ where $\bfX\in\mathbb{R}^{n\times p}$ is the design matrix whose columns are normalized with mean 0 and variance $1/p$, $\bfy\in\mathbb{R}^{n}$ is the response vector and $\bfZ\in\mathbb{R}^{n\times c}$ is the covariate matrix of fixed effects. The linear mixed model links $\bfy$ with $\bfX$ and $\bfZ$:
+Suppose we have dataset $\{\bfX,\bfZ,\bfy\}$ where $\bfX\in\mathbb{R}^{n\times p}$ is the design matrix, $\bfy\in\mathbb{R}^{n}$ is the response vector and $\bfZ\in\mathbb{R}^{n\times c}$ is the covariate matrix of fixed effects.H ere we first standardize the columns of $\bfX$ so that they have mean $0$ and variance $1/p$ (i.e., $\bfX\leftarrow\bfX/\bfs/\sqrt{p}$, where $\bfs\in\mathbb{R}^{p}$ is the standard deviations of the columns of the original genotype matrix). Hence the linear mixed model links $\bfy$ with $\bfX$ and $\bfZ$:
 \begin{equation}
 \bfy = \bfZ\bfomega+\bfX\bfbeta+\mathbf{e},\ \ \bfbeta\sim\mathcal{N}(0,\sigb\mathbf{I}_p),\ \  \mathbf{e}\sim\mathcal{N}(0,\sige\mathbf{I}_n),
 \end{equation}
@@ -221,7 +225,7 @@ Unlike the PX-EM algorithm, the MM algorithm maximize the incomplete-data log-li
 \end{equation}
 where $\bfOmega=\sigb\bfK+\sige\mathbf{I}_n$. The MM algorithm updates $\bfomega$ and $\bftheta$ alternatively by iteratively maximizing the lower bound of incomplete-data log-likelihood. Given $\bftheta^{(t)}$, the updata of $\bfomega$ is simply a weighted least square problem
 \begin{equation}
-\bfomegat = (\bfZ^T\bfOmegat\bfZ)^{-1}\bfZ^T(\bfOmega^{(t)})^{-1}\bfy.
+\bfomegat = (\bfZ^T(\bfOmegat)^{-1}\bfZ)^{-1}\bfZ^T(\bfOmega^{(t)})^{-1}\bfy.
 \end{equation}
 The update of $\bftheta$ given $\bfomega$ depends on two minorizations. First, 
 \begin{equation}
@@ -258,7 +262,7 @@ The convergence of MM algorithm is checked by evaluating the log-likelihood at e
 \begin{align}
 \begin{split}
 \bfOmegat &= (\sigma_{\beta}^{(t)})^2\bfK+(\sigma_e^{(t+1)})^2\mathbf{I}_n,\\
-\bfomegat &= (\bfZ^T\bfOmegat\bfZ)^{-1}\bfZ^T(\bfOmega^{(t)})^{-1}\bfy,\\
+\bfomegat &= (\bfZ^T(\bfOmegat)^{-1}\bfZ)^{-1}\bfZ^T(\bfOmega^{(t)})^{-1}\bfy,\\
 \mathrm{evaluate}&\ \mathcal{L}^{(t)}(\bfOmegat,\bfomegat)\ \mathrm{from\ Equation\ (6)}, \\
 (\sigma_{\beta}^{(t+1)})^2 &= \sigbt\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-1}\bfK(\bfOmegat)^{-1}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1}\bfK)}},\\
 (\sigma_e^{(t+1)})^2 &= \siget\sqrt{\frac{(\bfy-\bfZ\bfomegat)^T(\bfOmegat)^{-2}(\bfy-\bfZ\bfomegat)}{\tr((\bfOmegat)^{-1})}}.
@@ -269,6 +273,8 @@ The convergence of MM algorithm is checked by evaluating the log-likelihood at e
 \end{algorithm}
 
 To avoid frequently inverting $\bfOmega$ in the iterations, we can conduct eigen-decomposition on $\bfK=\bfU\bfD\bfU^T$ before the algorithm, where $\bfD\in\mathbb{R}^{n\times n}$ is a diagonal matrix of eigenvalues $d_i$ and $\bfU\in\mathbb{R}^{n\times n}$ is a matrix whose columns are corresponding eigenvectors of $d_i$. The resulting procedure is summarized in Algorithm 5.
+
+Once the parameter estimates $\hsigb$, $\hsige$ and $\hbfomega$ are obtained, we can recover the posterior mean by$$\bfmu=\left(\bfX^T\bfX+\frac{\hsige}{\hsigb}\bfI_p\right)^{-1}\bfX^T(\bfy-\bfZ\hbfomega)=\bfX^T\left(\bfX\bfX^T+\frac{\hsige}{\hsigb}\bfI_{n_1}\right)^{-1}(\bfy-\bfZ\hbfomega)$$. Note that because $\bfX$ has been standardized, we need to re-scale the posterior mean by $\bfmu\leftarrow\bfmu/\bfs/\sqrt{p}$.
 
 \begin{algorithm}
 \caption{Efficient MM algorithm for model (2)}
@@ -356,7 +362,10 @@ which leads to the normal equation
 		\bfy^T\bfM\bfy
 	\end{bmatrix}. \nonumber
 \end{equation}
-The MoM estimates of $\bftheta$ is then given by $\hbftheta=\bfS^{-1}\bfq$. The covariance matrix of MoM estimators are given by the sanwich estimator: $\bfSigtheta=\mathbb{E}\left[\frac{\partial B}{\partial\bftheta}\right]^{-1}\Cov(B)\mathbb{E}\left[\frac{\partial B}{\partial\bftheta}\right]^{-1}$, where $B$ is the normal equation $\bfq-\bfS\bftheta$. Specifically,
+The MoM estimates of $\bftheta$ is then given by $\hbftheta=\bfS^{-1}\bfq$. Once we have $\hsigb$ and $\hsige$, the estimate of fixed effects can be obtained by $$\hbfomega=(\bfZ^T\hbfOmega^{-1}\bfZ)^{-1}\bfZ^T(\hbfOmega)^{-1}\bfy,$$
+where $\hbfOmega=\hsigb\bfX\bfX^T + \hsige\bfI_{n_1}$. And again the posterior mean is given as $$\bfmu=\left(\bfX^T\bfX+\frac{\hsige}{\hsigb}\bfI_p\right)^{-1}\bfX^T(\bfy-\bfZ\hbfomega)$$
+if $n>p$, or $$\bfX^T\left(\bfX\bfX^T+\frac{\hsige}{\hsigb}\bfI_{n_1}\right)^{-1}(\bfy-\bfZ\hbfomega)$$ if $n<p$. Note that because $\bfX$ has been standardized, we need to re-scale the posterior mean by $\bfmu\leftarrow\bfmu/\bfs/\sqrt{p}$.
+The covariance matrix of MoM estimators are given by the sanwich estimator: $\bfSigtheta=\mathbb{E}\left[\frac{\partial B}{\partial\bftheta}\right]^{-1}\Cov(B)\mathbb{E}\left[\frac{\partial B}{\partial\bftheta}\right]^{-1}$, where $B$ is the normal equation $\bfq-\bfS\bftheta$. Specifically,
 \begin{equation}
 \mathbb{E}\left[\frac{\partial B}{\partial\theta}\right]^{-1}=\bfS^{-1},
 \end{equation}
@@ -371,21 +380,16 @@ where the elements are calculated by $\Var(\bfy^T\bfM\bfK\bfM\bfy)=2\tr([\bfM\bf
 library(VCM)
 n <- 1000
 d <- 1000
-
 sb2 <- 0.1
 se2 <- 1
 X <- matrix(rnorm(n*d),n,d)
 X <- scale(X)/sqrt(d)
-
 w  <- c(rnorm(d,0,sqrt(sb2)))
 y0 <- X%*%w
-
 y  <- y0 + sqrt(se2)*rnorm(n)
-
 fit_PXEM <- linRegPXEM(X=X,y=y,tol = 1e-6,maxIter =500,verbose=F)
 fit_MM <- linRegMM(X=X,y=y,tol=1e-6,maxIter = 500,verbose=F)
 fit_MoM <- linReg_MoM(X=X,y=y)
-
 c(fit_PXEM$se2,fit_PXEM$sb2)
 c(fit_MM$se2,fit_MM$sb2)
 c(fit_MoM$se2,fit_MoM$sb2)
