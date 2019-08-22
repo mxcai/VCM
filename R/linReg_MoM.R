@@ -45,9 +45,18 @@ linReg_MoM <- function(X,y,Z=NULL){
     covB[2,2] <- sum(MS^2) * 2
     covB[1,2] <- covB[2,1] <- sum(MKMS*MS) * 2
   }
+  Omega <- sigma[1]*K
+  diag(Omega) <- diag(Omega) + sigma[2]
+
+  inv_Omega <- chol2inv(chol(Omega))
+  # recover beta0 and mu
+  beta0 <- solve(t(Z)%*%inv_Omega%*%Z,t(Z)%*%(inv_Omega%*%y0))
 
   # Sandwich estimator
   covSig <- invS %*% covB %*% invS
+  mu <- sigma[1]*t(X)%*%(inv_Omega%*%(y0-Z%*%beta0))
+
+  mu <- mu/Xsd/sqrt(p)
 
   sb2 <- sigma[1]
   se2 <- sigma[2]
@@ -59,7 +68,7 @@ linReg_MoM <- function(X,y,Z=NULL){
   gh <- c(se2*(n-q)*trK/var_total^2, -sb2*(n-q)*trK/var_total^2)
   se_h <- sqrt(t(gh) %*% covSig %*% gh)
 
-  ret <- list(sb2=sb2, se2=se2, K=K, covSig=covSig, h=h, se_h=se_h)
+  ret <- list(beta0=beta0, sb2=sb2, se2=se2, mu=mu, K=K, covSig=covSig, h=h, se_h=se_h)
 
   class(ret) <- c("VCM","MoM")
   ret
