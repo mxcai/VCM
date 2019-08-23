@@ -4,8 +4,12 @@ linReg_MoM <- function(X,y,Z=NULL){
   n <- length(y)
 
   ym <- mean(y)
-  X <- scale(X)/sqrt(p)
+  Xm <- colMeans(X)
+  X <- scale(X,center = T,scale = F)  # centerize X
+  Xsd <- sqrt(colMeans(X^2))
+  X <- t(t(X)/Xsd)/sqrt(p)  # scale X
   K <- X %*% t(X)
+  y0 <- y
 
   if(is.null(Z)){
     Z <- matrix(1,n,1)
@@ -51,12 +55,14 @@ linReg_MoM <- function(X,y,Z=NULL){
   inv_Omega <- chol2inv(chol(Omega))
   # recover beta0 and mu
   beta0 <- solve(t(Z)%*%inv_Omega%*%Z,t(Z)%*%(inv_Omega%*%y0))
+  mu <- sigma[1]*t(X)%*%(inv_Omega%*%(y0-Z%*%beta0))
+
+  # re-scale beta0 and mu
+  mu <- mu/Xsd/sqrt(p)
+  beta0[1] <- beta0[1] - colSums(mu*Xm)
 
   # Sandwich estimator
   covSig <- invS %*% covB %*% invS
-  mu <- sigma[1]*t(X)%*%(inv_Omega%*%(y0-Z%*%beta0))
-
-  mu <- mu/Xsd/sqrt(p)
 
   sb2 <- sigma[1]
   se2 <- sigma[2]
