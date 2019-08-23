@@ -19,6 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 \def\bfK {\mathbf{K}}
 \def\bfI {\mathbf{I}}
 \def\bfs {\mathbf{s}}
+\def\bfx {\mathbf{x}}
 \def\bfomega {\bm{\omega}}
 \def\hbfomega {\hat{\bm{\omega}}}
 \def\hbfomega {\hat{\bfomega}}
@@ -62,7 +63,7 @@ This package contains three approaches for estimating variance components of lin
 
 ## Variance components model
 
-Suppose we have dataset $\{\bfX,\bfZ,\bfy\}$ where $\bfX\in\mathbb{R}^{n\times p}$ is the design matrix, $\bfy\in\mathbb{R}^{n}$ is the response vector and $\bfZ\in\mathbb{R}^{n\times c}$ is the covariate matrix of fixed effects.H ere we first standardize the columns of $\bfX$ so that they have mean $0$ and variance $1/p$ (i.e., $\bfX\leftarrow\bfX/\bfs/\sqrt{p}$, where $\bfs\in\mathbb{R}^{p}$ is the standard deviations of the columns of the original genotype matrix). Hence the linear mixed model links $\bfy$ with $\bfX$ and $\bfZ$:
+Suppose we have dataset $\{\bfX,\bfZ,\bfy\}$ where $\bfX\in\mathbb{R}^{n\times p}$ is the design matrix, $\bfy\in\mathbb{R}^{n}$ is the response vector and $\bfZ\in\mathbb{R}^{n\times c}$ is the covariate matrix of fixed effects.H ere we first standardize the columns of $\bfX$ so that they have mean $0$ and variance $1/p$ (i.e., $\bfx_j\leftarrow(\bfx_j-\bar{\bfx}_j)/\bfs_j/\sqrt{p}$, where $\bfx_j\in\mathbb{R}^{p}$ is the $j$-th column of $\bfX$, $\bar{\bfx}_j$ and $\bfs_j$ is the corresponding column mean and standard deviation). Hence the linear mixed model links $\bfy$ with $\bfX$ and $\bfZ$:
 \begin{equation}
 \bfy = \bfZ\bfomega+\bfX\bfbeta+\mathbf{e},\ \ \bfbeta\sim\mathcal{N}(0,\sigb\mathbf{I}_p),\ \  \mathbf{e}\sim\mathcal{N}(0,\sige\mathbf{I}_n),
 \end{equation}
@@ -274,7 +275,7 @@ The convergence of MM algorithm is checked by evaluating the log-likelihood at e
 
 To avoid frequently inverting $\bfOmega$ in the iterations, we can conduct eigen-decomposition on $\bfK=\bfU\bfD\bfU^T$ before the algorithm, where $\bfD\in\mathbb{R}^{n\times n}$ is a diagonal matrix of eigenvalues $d_i$ and $\bfU\in\mathbb{R}^{n\times n}$ is a matrix whose columns are corresponding eigenvectors of $d_i$. The resulting procedure is summarized in Algorithm 5.
 
-Once the parameter estimates $\hsigb$, $\hsige$ and $\hbfomega$ are obtained, we can recover the posterior mean by$$\bfmu=\left(\bfX^T\bfX+\frac{\hsige}{\hsigb}\bfI_p\right)^{-1}\bfX^T(\bfy-\bfZ\hbfomega)=\bfX^T\left(\bfX\bfX^T+\frac{\hsige}{\hsigb}\bfI_{n_1}\right)^{-1}(\bfy-\bfZ\hbfomega)$$. Note that because $\bfX$ has been standardized, we need to re-scale the posterior mean by $\bfmu\leftarrow\bfmu/\bfs/\sqrt{p}$.
+Once the parameter estimates $\hsigb$, $\hsige$ and $\hbfomega$ are obtained, we can recover the posterior mean by$$\bfmu=\left(\bfX^T\bfX+\frac{\hsige}{\hsigb}\bfI_p\right)^{-1}\bfX^T(\bfy-\bfZ\hbfomega)=\bfX^T\left(\bfX\bfX^T+\frac{\hsige}{\hsigb}\bfI_{n_1}\right)^{-1}(\bfy-\bfZ\hbfomega)$$. Note that because $\bfX$ has been standardized, we need to re-scale the posterior mean by $\bfmu\leftarrow\bfmu/\bfs/\sqrt{p}$ and then the intercept by $\hbfomega_0\leftarrow\hbfomega_0-\sum_j\bar{\bfx}_j\cdot\bfmu_j$.
 
 \begin{algorithm}
 \caption{Efficient MM algorithm for model (2)}
@@ -364,7 +365,7 @@ which leads to the normal equation
 \end{equation}
 The MoM estimates of $\bftheta$ is then given by $\hbftheta=\bfS^{-1}\bfq$. Once we have $\hsigb$ and $\hsige$, the estimate of fixed effects can be obtained by $$\hbfomega=(\bfZ^T\hbfOmega^{-1}\bfZ)^{-1}\bfZ^T(\hbfOmega)^{-1}\bfy,$$
 where $\hbfOmega=\hsigb\bfX\bfX^T + \hsige\bfI_{n_1}$. And again the posterior mean is given as $$\bfmu=\left(\bfX^T\bfX+\frac{\hsige}{\hsigb}\bfI_p\right)^{-1}\bfX^T(\bfy-\bfZ\hbfomega)$$
-if $n>p$, or $$\bfX^T\left(\bfX\bfX^T+\frac{\hsige}{\hsigb}\bfI_{n_1}\right)^{-1}(\bfy-\bfZ\hbfomega)$$ if $n<p$. Note that because $\bfX$ has been standardized, we need to re-scale the posterior mean by $\bfmu\leftarrow\bfmu/\bfs/\sqrt{p}$.
+if $n>p$, or $$\bfX^T\left(\bfX\bfX^T+\frac{\hsige}{\hsigb}\bfI_{n_1}\right)^{-1}(\bfy-\bfZ\hbfomega)$$ if $n<p$. Note that because $\bfX$ has been standardized, we need to re-scale the posterior mean by $\bfmu\leftarrow\bfmu/\bfs/\sqrt{p}$ and then the intercept by $\hbfomega_0\leftarrow\hbfomega_0-\sum_j\bfmu_j\cdot\bar{\bfx}_j$.
 The covariance matrix of MoM estimators are given by the sanwich estimator: $\bfSigtheta=\mathbb{E}\left[\frac{\partial B}{\partial\bftheta}\right]^{-1}\Cov(B)\mathbb{E}\left[\frac{\partial B}{\partial\bftheta}\right]^{-1}$, where $B$ is the normal equation $\bfq-\bfS\bftheta$. Specifically,
 \begin{equation}
 \mathbb{E}\left[\frac{\partial B}{\partial\theta}\right]^{-1}=\bfS^{-1},
