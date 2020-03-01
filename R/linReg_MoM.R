@@ -1,5 +1,5 @@
 # VCM solved by Method of Moments
-linReg_MoM <- function(X,y,Z=NULL){
+linReg_MoM <- function(X,y,Z=NULL,approx_se=F,rv_approx=F,n_rv=20){
   p <- ncol(X)
   n <- length(y)
 
@@ -25,7 +25,9 @@ linReg_MoM <- function(X,y,Z=NULL){
   q <- ncol(Z)
 
   trK <- sum(diag(MK))
-  trK2 <- sum(MK^2)
+  trK2 <- ifelse(rv_approx,
+                 sum((MK%*%matrix(rnorm(n_rv*n),n,n_rv))^2)/n_rv,
+                 sum(MK^2))
 
   S <- matrix(c(trK2, trK, trK, n-q),2,2)
   c <- c(t(y)%*%MK%*%y, sum(y^2))
@@ -33,22 +35,47 @@ linReg_MoM <- function(X,y,Z=NULL){
   invS <- solve(S)
   sigma <- invS %*% c
 
+  var_rv <- ifelse(rv_approx,
+                   sigma[1]^2*trK2/n_rv,
+                   0)
+
   covB <- matrix(0,2,2)
-  if(q==1){
-    Sigma <- sigma[1]*K + sigma[2]*M
-    KS <- K%*%Sigma
+  if(approx_se){
+    if(q==1){
+      Ky <- K%*%y
+      Sy <- sigma[1]*Ky + sigma[2]*y
+      SKy <- sigma[1]*K%*%Ky + sigma[2]*Ky
 
-    covB[1,1] <- sum(KS^2) * 2
-    covB[2,2] <- sum(Sigma^2) * 2
-    covB[1,2] <- covB[2,1] <- sum(KS*Sigma) * 2
-  } else{
-    MS <- sigma[1]*MK%*%M + sigma[2]*M
-    MKMS <- MK %*% MS
+      covB[1,1] <- t(Ky)%*%(SKy) * 2 + var_rv
+      covB[2,2] <- t(y)%*%Sy * 2
+      covB[1,2] <- covB[2,1] <- t(SKy)%*%y * 2
+    } else{
+      Ky <- MK%*%y
+      Sy <- sigma[1]*Ky + sigma[2]*y
+      SKy <- sigma[1]*MK%*%Ky + sigma[2]*Ky
 
-    covB[1,1] <- sum(MKMS^2) * 2
-    covB[2,2] <- sum(MS^2) * 2
-    covB[1,2] <- covB[2,1] <- sum(MKMS*MS) * 2
+      covB[1,1] <- t(Ky)%*%(SKy) * 2 + var_rv
+      covB[2,2] <- t(y)%*%Sy * 2
+      covB[1,2] <- covB[2,1] <- t(SKy)%*%y * 2
+    }
+  } else {
+    if(q==1){
+      Sigma <- sigma[1]*K + sigma[2]*M
+      KS <- K%*%Sigma
+
+      covB[1,1] <- sum(KS^2) * 2 + var_rv
+      covB[2,2] <- sum(Sigma^2) * 2
+      covB[1,2] <- covB[2,1] <- sum(KS*Sigma) * 2
+    } else{
+      MS <- sigma[1]*MK%*%M + sigma[2]*M
+      MKMS <- MK %*% MS
+
+      covB[1,1] <- sum(MKMS^2) * 2 + var_rv
+      covB[2,2] <- sum(MS^2) * 2
+      covB[1,2] <- covB[2,1] <- sum(MKMS*MS) * 2
+    }
   }
+
   Omega <- sigma[1]*K
   diag(Omega) <- diag(Omega) + sigma[2]
 
