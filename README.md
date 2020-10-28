@@ -67,6 +67,7 @@ p <- ggplot(out,aes(x=nonzero,y=PVEe,color=method)) + geom_boxplot() + geom_hlin
 p
 ```
 ![Fig1](https://github.com/mxcai/VCM/blob/master/PVE_LMMvsLASSO.png)
+
 References
 ==========
 
