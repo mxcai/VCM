@@ -85,3 +85,9 @@ Development
 ==========
 
 This R package is developed by Mingxuan Cai (mcaiad@ust.hk).
+
+
+Contact
+==========
+
+Please contact Mingxuan Cai (mcaiad@ust.hk) or Prof. Can Yang (macyang@ust.hk) if any enquiry.
