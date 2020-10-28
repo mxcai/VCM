@@ -66,7 +66,7 @@ out$nonzero <- as.factor(out$nonzero)
 p <- ggplot(out,aes(x=nonzero,y=PVEe,color=method)) + geom_boxplot() + geom_hline(yintercept=PVEe,linetype="dashed")
 p
 ```
-
+![Fig1](https://github.com/mxcai/VCM/blob/master/PVE_LMMvsLASSO.pdf)
 References
 ==========
 
