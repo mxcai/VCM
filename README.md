@@ -28,13 +28,13 @@ library(glmnet)
 library(VCM)
 library(ggplot2)
 library(RhpcBLASctl)
-blas_set_num_threads(8)
+blas_set_num_threads(30)
 
 n <- 500
 p <- 1000
 
-PVEb <- 0.5
-PVEe <- 0.5
+sigb <- 0.5
+sige <- 0.5
 
 nonzero <- c(10,50,100)
 nrep <- 50
@@ -48,22 +48,23 @@ for(i in 1:length(nonzero)){
   beta <- rep(0,p)
 
   for (j in 1:nrep){
-    beta[1:nonzero[i]] <- rnorm(nonzero[i],0,sqrt(PVEb/nonzero[i]*p))
+    beta[1:nonzero[i]] <- rnorm(nonzero[i],0,sqrt(sigb/nonzero[i]*p))
     y0 <- Xs%*%beta
-    y <- y0 + rnorm(n,0,sqrt(PVEe))
+    y <- y0 + rnorm(n,0,sqrt(sige))
     fit_lmm <- linRegMM(X,y)
     fit_lasso <- cv.glmnet(X,y)
     yhat_lasso <- predict(fit_lasso,X,s="lambda.min")
     nz <- sum(coef(fit_lasso,s='lambda.min')!=0)
-    PVEe_lasso <- sum((y-yhat_lasso)^2)/(n-nz-1)
-    out <- rbind(out,data.frame(nonzero=nonzero[i],method="LMM",PVEe=fit_lmm$se2))
-    out <- rbind(out,data.frame(nonzero=nonzero[i],method="LASSO",PVEe=PVEe_lasso))
+    sige_lasso <- sum((y-yhat_lasso)^2)/(n-nz-1)
+    out <- rbind(out,data.frame(nonzero=nonzero[i],component="variance of error",method="LMM",sigma=fit_lmm$se2))
+    out <- rbind(out,data.frame(nonzero=nonzero[i],component="PVE",method="LMM",sigma=fit_lmm$sb2))
+    out <- rbind(out,data.frame(nonzero=nonzero[i],component="variance of error",method="LASSO",sigma=sige_lasso))
     cat(i,"-th nonzero, ",j,"-th rep finished.\n")
   }
 }
 out$nonzero <- as.factor(out$nonzero)
-
-p <- ggplot(out,aes(x=nonzero,y=PVEe,color=method)) + geom_boxplot() + geom_hline(yintercept=PVEe,linetype="dashed")
+p <- ggplot(out,aes(x=nonzero,y=sigma,color=method)) + geom_boxplot() + facet_grid(.~component) + 
+     geom_hline(yintercept=sige,linetype="dashed") + ylab("Estimated variance") + xlab("Number of nonzero effects")
 p
 ```
 ![Fig1](https://github.com/mxcai/VCM/blob/master/sigma_LMMvsLASSO.png)
