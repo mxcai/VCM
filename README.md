@@ -21,7 +21,7 @@ Variance component estimation under model mis-specification
 ===========
 Jiang, J et al. demonstrate that the LMM can produce accurate variance component estimate under mis-specified random effects model. Here we reproduce their results using our VCM package for fitting random effects model and glmnet for fitting lasso model.
 
-We first simulate X with sample size n=500 and p=1000 variables as design matrix. To model the mis-specified setting of the random effects model, we need to generate sparse effects. We consider 3 settings of sparsity level. Specifically, we choose 10, 50, and 100 effects as nonzero by sampling their sizes from normal distributions while fixing the rest effects at zero. For all settings, we set the proportion of variance explained (PVE) at 0.5 (signal-to-noise ratio 1:1). We compare the estimated PVE of error term. 
+We first simulate X with sample size n=500 and p=1000 variables as design matrix. To model the mis-specified setting of the random effects model, we need to generate sparse effects. We consider 3 settings of sparsity level. Specifically, we choose 10, 50, and 100 effects as nonzero by sampling their sizes from normal distributions while fixing the rest effects at zero. For all settings, we set the proportion of variance explained (PVE) at 0.5 (signal-to-noise ratio 1:1). The estimated PVE and variance of error term are shown below.
 
 ```{r}
 library(glmnet)
