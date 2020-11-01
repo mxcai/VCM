@@ -1,5 +1,5 @@
 # VCM solved by Method of Moments
-linReg_MoM <- function(X,y,Z=NULL,approx_se=F,rv_approx=F,n_rv=20,seed=100){
+linRegMoM <- function(X,y,Z=NULL,approx_se=F,rv_approx=F,n_rv=20,seed=100){
   set.seed(seed)
   p <- ncol(X)
   n <- length(y)
