@@ -6,7 +6,7 @@ cvperf.linReg <- function(X=NULL, y, Z=NULL, nfolds=10, alg="PXEM", verbose=F, .
 
   p <- ifelse(is.null(X),0,ncol(X))
   n <- length(y)
-  q <- ifelse(is.null(Z),1,ncol(Z))
+  q <- ifelse(is.null(Z),1,ncol(Z)+1)
   # decide the cv assignments
   if(nfolds == n) {
     idx <- sample(1:n)
