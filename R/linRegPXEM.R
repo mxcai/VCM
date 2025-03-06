@@ -39,7 +39,7 @@ linRegPXEM <- function(X,y,Z=NULL,maxIter=1500,tol=1e-6,se2=NULL,sb2=NULL,verbos
     XX <- X%*%t(X)
   }
 
-  eigenXX <- eigen(XX)
+  eigenXX <- eigen(XX,symmetric = T)
   eVal <- eigenXX$values
   eVec <- eigenXX$vectors
 
